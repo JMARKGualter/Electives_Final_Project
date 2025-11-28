@@ -3,5 +3,6 @@ seaborn
 matplotlib
 spacy
 ttkbootstrap
+scikit-learn
 
 #install 
