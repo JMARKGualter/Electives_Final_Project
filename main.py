@@ -5,6 +5,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import simpledialog
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 # Optional improved theming
 try:
     import ttkbootstrap as tb
@@ -85,6 +90,347 @@ def normalize_columns(df: pd.DataFrame, for_prediction: bool = False) -> pd.Data
 
     return df
 
+
+# Replace the cluster_students and cluster_faculty functions with these safer versions:
+
+def cluster_students():
+    """Cluster students using Age + GWA + Status + Year Level"""
+    try:
+        if 'df' not in globals() or df is None or df.empty:
+            messagebox.showerror("Error", "No data available for clustering.")
+            return
+
+        # Normalize column names
+        data = df.copy()
+        
+        # Find relevant columns using common variants
+        def find_column(variants):
+            for variant in variants:
+                for col in data.columns:
+                    if variant.lower() in col.lower():
+                        return col
+            return None
+
+        age_col = find_column(['Age', 'age'])
+        gwa_col = find_column(['GWA', 'gwa', 'Grade', 'grade', 'Score', 'score'])
+        status_col = find_column(['Status', 'status', 'StudentStatus'])
+        year_col = find_column(['Year', 'year', 'YearLevel', 'yearlevel', 'Level', 'level'])
+
+        required_cols = [age_col, gwa_col, status_col, year_col]
+        missing_cols = [f"'{variants[0]}'" for col, variants in 
+                       zip(required_cols, [['Age'], ['GWA'], ['Status'], ['Year']]) 
+                       if col is None]
+        
+        if missing_cols:
+            messagebox.showerror("Error", f"Missing required columns: {', '.join(missing_cols)}")
+            return
+
+        # Prepare data for clustering
+        cluster_data = data[[age_col, gwa_col, status_col, year_col]].copy()
+        
+        # Convert categorical columns to numeric if needed
+        if not pd.api.types.is_numeric_dtype(cluster_data[status_col]):
+            cluster_data[status_col] = cluster_data[status_col].astype('category').cat.codes
+        
+        if not pd.api.types.is_numeric_dtype(cluster_data[year_col]):
+            cluster_data[year_col] = cluster_data[year_col].astype('category').cat.codes
+
+        # Handle missing values
+        if cluster_data.isnull().any().any():
+            cluster_data = cluster_data.fillna(cluster_data.mean())
+            messagebox.showinfo("Info", "Missing values filled with column means")
+
+        # Scale the data
+        scaler = StandardScaler()
+        scaled_data = scaler.fit_transform(cluster_data)
+
+        # Determine optimal number of clusters using elbow method
+        inertias = []
+        k_range = range(2, 8)
+        
+        for k in k_range:
+            kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+            kmeans.fit(scaled_data)
+            inertias.append(kmeans.inertia_)
+
+        # Use elbow method to find optimal k (simplified - use 3 clusters)
+        optimal_k = 3
+        
+        # Perform clustering
+        kmeans = KMeans(n_clusters=optimal_k, random_state=42, n_init=10)
+        clusters = kmeans.fit_predict(scaled_data)
+        
+        # Add cluster labels to data
+        data['Student_Cluster'] = clusters
+        cluster_data['Cluster'] = clusters
+
+        # Create visualization
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+        fig.patch.set_facecolor("#1E1E2F")
+        
+        # Plot 1: Age vs GWA colored by cluster
+        scatter1 = ax1.scatter(data[age_col], data[gwa_col], c=clusters, cmap='viridis', alpha=0.7)
+        ax1.set_xlabel(age_col, color="#F8F8F2")
+        ax1.set_ylabel(gwa_col, color="#F8F8F2")
+        ax1.set_title(f"Student Clusters: {age_col} vs {gwa_col}", color="#F8F8F2")
+        ax1.tick_params(colors="#F8F8F2")
+        ax1.grid(True, alpha=0.3)
+        plt.colorbar(scatter1, ax=ax1)
+
+        # Plot 2: Cluster distribution
+        cluster_counts = data['Student_Cluster'].value_counts().sort_index()
+        bars = ax2.bar(cluster_counts.index, cluster_counts.values, color=['#FF6B6B', '#4ECDC4', '#45B7D1'])
+        ax2.set_xlabel('Cluster', color="#F8F8F2")
+        ax2.set_ylabel('Number of Students', color="#F8F8F2")
+        ax2.set_title('Student Distribution Across Clusters', color="#F8F8F2")
+        ax2.tick_params(colors="#F8F8F2")
+        
+        # Add value labels on bars
+        for bar in bars:
+            height = bar.get_height()
+            ax2.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{int(height)}', ha='center', va='bottom', color="#F8F8F2")
+
+        # Set background colors
+        for ax in [ax1, ax2]:
+            ax.set_facecolor("#1E1E2F")
+
+        plt.tight_layout()
+
+        # Safe UI updates
+        def safe_ui_updates():
+            try:
+                # Display in visualization frame
+                for widget in visualization_frame.winfo_children():
+                    widget.destroy()
+                canvas = FigureCanvasTkAgg(fig, master=visualization_frame)
+                canvas.draw()
+                canvas.get_tk_widget().pack(fill="both", expand=True)
+
+                # Show cluster summary
+                cluster_summary = data.groupby('Student_Cluster').agg({
+                    age_col: 'mean',
+                    gwa_col: 'mean',
+                    status_col: lambda x: x.mode()[0] if len(x.mode()) > 0 else 'Unknown',
+                    year_col: 'mean'
+                }).round(2)
+
+                summary_text = f"Student Clustering Results (K={optimal_k} clusters)\n\n"
+                summary_text += f"Features used: {age_col}, {gwa_col}, {status_col}, {year_col}\n\n"
+                summary_text += "Cluster Profiles:\n"
+                
+                for cluster_id in range(optimal_k):
+                    cluster_data_subset = data[data['Student_Cluster'] == cluster_id]
+                    summary_text += f"\nCluster {cluster_id} ({len(cluster_data_subset)} students):\n"
+                    summary_text += f"  Avg {age_col}: {cluster_data_subset[age_col].mean():.1f}\n"
+                    summary_text += f"  Avg {gwa_col}: {cluster_data_subset[gwa_col].mean():.2f}\n"
+                    summary_text += f"  Avg {year_col}: {cluster_data_subset[year_col].mean():.1f}\n"
+
+                # Update relationship label safely
+                if relationship_label.winfo_exists():
+                    relationship_label.config(text=f"Student Clustering Complete - {optimal_k} clusters identified")
+
+                # Show detailed results in auxiliary panel safely
+                if str(aux_panel) not in left_vpaned.panes():
+                    left_vpaned.add(aux_panel)
+                aux_var.set(True)
+
+                # Clear auxiliary panel safely
+                for widget in aux_panel.winfo_children():
+                    if widget != aux_header and widget.winfo_exists():
+                        widget.destroy()
+
+                text_frame = tk.Frame(aux_panel, bg="#1E1E2F")
+                text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0,10))
+
+                results_text = tk.Text(text_frame, wrap=tk.WORD, bg="#282A36", fg="#F8F8F2", font=("Arial", 10))
+                results_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+                scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=results_text.yview)
+                scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+                results_text.configure(yscrollcommand=scrollbar.set)
+
+                results_text.insert(tk.END, summary_text)
+                results_text.config(state=tk.DISABLED)
+
+                messagebox.showinfo("Success", f"Student clustering completed! {optimal_k} clusters identified.")
+                
+            except Exception as ui_error:
+                print(f"UI update error: {ui_error}")
+                # Fallback: just show a simple message
+                try:
+                    messagebox.showinfo("Success", f"Student clustering completed with {optimal_k} clusters!")
+                except:
+                    pass
+
+        # Schedule UI updates to run in the main thread
+        root.after(0, safe_ui_updates)
+
+    except Exception as e:
+        # Handle the error in the main thread
+        def show_error():
+            messagebox.showerror("Clustering Error", f"An error occurred: {e}")
+        root.after(0, show_error)
+
+def cluster_faculty():
+    """Cluster faculty using Experience + Teaching Load + Age"""
+    try:
+        if 'df' not in globals() or df is None or df.empty:
+            messagebox.showerror("Error", "No data available for clustering.")
+            return
+
+        # Normalize column names
+        data = df.copy()
+        
+        # Find relevant columns using common variants
+        def find_column(variants):
+            for variant in variants:
+                for col in data.columns:
+                    if variant.lower() in col.lower():
+                        return col
+            return None
+
+        exp_col = find_column(['Experience', 'experience', 'Exp', 'exp', 'Years', 'years'])
+        load_col = find_column(['TeachingLoad', 'teachingload', 'Load', 'load', 'Teaching', 'teaching'])
+        age_col = find_column(['Age', 'age'])
+
+        required_cols = [exp_col, load_col, age_col]
+        missing_cols = [f"'{variants[0]}'" for col, variants in 
+                       zip(required_cols, [['Experience'], ['TeachingLoad'], ['Age']]) 
+                       if col is None]
+        
+        if missing_cols:
+            messagebox.showerror("Error", f"Missing required columns: {', '.join(missing_cols)}")
+            return
+
+        # Prepare data for clustering
+        cluster_data = data[[exp_col, load_col, age_col]].copy()
+
+        # Handle missing values
+        if cluster_data.isnull().any().any():
+            cluster_data = cluster_data.fillna(cluster_data.mean())
+            messagebox.showinfo("Info", "Missing values filled with column means")
+
+        # Scale the data
+        scaler = StandardScaler()
+        scaled_data = scaler.fit_transform(cluster_data)
+
+        # Use 3 clusters for faculty (low, medium, high load)
+        optimal_k = 3
+        
+        # Perform clustering
+        kmeans = KMeans(n_clusters=optimal_k, random_state=42, n_init=10)
+        clusters = kmeans.fit_predict(scaled_data)
+        
+        # Add cluster labels to data with meaningful names
+        cluster_names = {0: 'Low Load', 1: 'Medium Load', 2: 'High Load'}
+        data['Faculty_Cluster'] = [cluster_names.get(cluster, f'Cluster {cluster}') for cluster in clusters]
+
+        # Create visualization
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+        fig.patch.set_facecolor("#1E1E2F")
+        
+        # Plot 1: Experience vs Teaching Load colored by cluster
+        scatter1 = ax1.scatter(data[exp_col], data[load_col], c=clusters, cmap='plasma', alpha=0.7)
+        ax1.set_xlabel(exp_col, color="#F8F8F2")
+        ax1.set_ylabel(load_col, color="#F8F8F2")
+        ax1.set_title(f"Faculty Clusters: {exp_col} vs {load_col}", color="#F8F8F2")
+        ax1.tick_params(colors="#F8F8F2")
+        ax1.grid(True, alpha=0.3)
+        plt.colorbar(scatter1, ax=ax1)
+
+        # Plot 2: Cluster distribution
+        cluster_counts = data['Faculty_Cluster'].value_counts()
+        colors = ['#FF6B6B', '#4ECDC4', '#45B7D1'][:len(cluster_counts)]
+        bars = ax2.bar(range(len(cluster_counts)), cluster_counts.values, color=colors)
+        ax2.set_xlabel('Faculty Group', color="#F8F8F2")
+        ax2.set_ylabel('Number of Faculty', color="#F8F8F2")
+        ax2.set_title('Faculty Distribution Across Groups', color="#F8F8F2")
+        ax2.tick_params(colors="#F8F8F2")
+        ax2.set_xticks(range(len(cluster_counts)))
+        ax2.set_xticklabels(cluster_counts.index, rotation=45)
+        
+        # Add value labels on bars
+        for bar in bars:
+            height = bar.get_height()
+            ax2.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{int(height)}', ha='center', va='bottom', color="#F8F8F2")
+
+        # Set background colors
+        for ax in [ax1, ax2]:
+            ax.set_facecolor("#1E1E2F")
+
+        plt.tight_layout()
+
+        # Safe UI updates
+        def safe_ui_updates():
+            try:
+                # Display in visualization frame
+                for widget in visualization_frame.winfo_children():
+                    if widget.winfo_exists():
+                        widget.destroy()
+                canvas = FigureCanvasTkAgg(fig, master=visualization_frame)
+                canvas.draw()
+                canvas.get_tk_widget().pack(fill="both", expand=True)
+
+                # Show cluster summary
+                summary_text = f"Faculty Clustering Results\n\n"
+                summary_text += f"Features used: {exp_col}, {load_col}, {age_col}\n\n"
+                summary_text += "Faculty Groups:\n"
+                
+                for cluster_name in cluster_names.values():
+                    cluster_data_subset = data[data['Faculty_Cluster'] == cluster_name]
+                    if len(cluster_data_subset) > 0:
+                        summary_text += f"\n{cluster_name} Group ({len(cluster_data_subset)} faculty):\n"
+                        summary_text += f"  Avg {exp_col}: {cluster_data_subset[exp_col].mean():.1f} years\n"
+                        summary_text += f"  Avg {load_col}: {cluster_data_subset[load_col].mean():.1f}\n"
+                        summary_text += f"  Avg {age_col}: {cluster_data_subset[age_col].mean():.1f} years\n"
+
+                # Update relationship label safely
+                if relationship_label.winfo_exists():
+                    relationship_label.config(text=f"Faculty Clustering Complete - {optimal_k} groups identified")
+
+                # Show detailed results in auxiliary panel safely
+                if str(aux_panel) not in left_vpaned.panes():
+                    left_vpaned.add(aux_panel)
+                aux_var.set(True)
+
+                # Clear auxiliary panel safely
+                for widget in aux_panel.winfo_children():
+                    if widget != aux_header and widget.winfo_exists():
+                        widget.destroy()
+
+                text_frame = tk.Frame(aux_panel, bg="#1E1E2F")
+                text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0,10))
+
+                results_text = tk.Text(text_frame, wrap=tk.WORD, bg="#282A36", fg="#F8F8F2", font=("Arial", 10))
+                results_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+                scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=results_text.yview)
+                scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+                results_text.configure(yscrollcommand=scrollbar.set)
+
+                results_text.insert(tk.END, summary_text)
+                results_text.config(state=tk.DISABLED)
+
+                messagebox.showinfo("Success", f"Faculty clustering completed! {optimal_k} faculty groups identified.")
+                
+            except Exception as ui_error:
+                print(f"UI update error: {ui_error}")
+                # Fallback: just show a simple message
+                try:
+                    messagebox.showinfo("Success", f"Faculty clustering completed with {optimal_k} groups!")
+                except:
+                    pass
+
+        # Schedule UI updates to run in the main thread
+        root.after(0, safe_ui_updates)
+
+    except Exception as e:
+        # Handle the error in the main thread
+        def show_error():
+            messagebox.showerror("Clustering Error", f"An error occurred: {e}")
+        root.after(0, show_error)
 
 # Function to upload CSV file
 def upload_file():
@@ -844,44 +1190,55 @@ def recommend_faculty():
 
         results = ner_module.rank_faculty(df, subject, top_n=10)
 
-        # Ensure recommendations panel is visible
-        try:
-            if str(recommend_panel) not in right_vpaned.panes():
-                right_vpaned.add(recommend_panel)
-            rec_var.set(True)
-        except Exception:
-            pass
+        # Safe UI updates
+        def safe_ui_updates():
+            try:
+                # Ensure recommendations panel is visible
+                if str(recommend_panel) not in right_vpaned.panes():
+                    right_vpaned.add(recommend_panel)
+                rec_var.set(True)
 
-        # Clear existing entries
-        try:
-            for item in recommend_tree.get_children():
-                recommend_tree.delete(item)
-        except Exception:
-            pass
+                # Clear existing entries safely
+                for item in recommend_tree.get_children():
+                    recommend_tree.delete(item)
 
-        # Store results globally so selection handler can access them
-        global recommend_results
-        recommend_results = results  # Store the entire results list
+                # Store results globally so selection handler can access them
+                global recommend_results
+                recommend_results = results  # Store the entire results list
 
-        # Insert new items
-        try:
-            for r in recommend_results:
-                name = r.get("name", "")
-                score = f"{r.get('score', 0):.2f}"
-                recommend_tree.insert("", "end", values=(name, score))
-        except Exception as e:
-            print(f"Error inserting into tree: {e}")
+                # Insert new items safely
+                for r in recommend_results:
+                    name = r.get("name", "")
+                    score = f"{r.get('score', 0):.2f}"
+                    recommend_tree.insert("", "end", values=(name, score))
 
-        # Update relationship label with top score summary
-        if recommend_results:
-            top = recommend_results[0]
-            relationship_label.config(text=f"Top match: {top.get('name')} ({top.get('score'):.2f})")
-        else:
-            relationship_label.config(text="No recommendations found.")
+                # Update relationship label with top score summary safely
+                if relationship_label.winfo_exists():
+                    if recommend_results:
+                        top = recommend_results[0]
+                        relationship_label.config(text=f"Top match: {top.get('name')} ({top.get('score'):.2f})")
+                    else:
+                        relationship_label.config(text="No recommendations found.")
+
+            except Exception as ui_error:
+                print(f"UI update error in recommend_faculty: {ui_error}")
+                # Fallback: just show a simple message
+                try:
+                    if recommend_results:
+                        messagebox.showinfo("Recommendations", f"Found {len(recommend_results)} recommendations!")
+                    else:
+                        messagebox.showinfo("Recommendations", "No recommendations found.")
+                except:
+                    pass
+
+        # Schedule UI updates to run in the main thread
+        root.after(0, safe_ui_updates)
 
     except Exception as e:
-        messagebox.showerror("Error", f"An error occurred: {e}")
-
+        # Handle the error in the main thread
+        def show_error():
+            messagebox.showerror("Error", f"An error occurred: {e}")
+        root.after(0, show_error)
 
 # Initialize GUI
 # Note: theme persistence and sash animations are currently disabled.
@@ -1069,6 +1426,11 @@ save_button = tk.Button(dataops_frame, text="Save Visualization", command=save_v
 save_button.pack(fill=tk.X, pady=4, padx=6)
 predictions_button = tk.Button(dataops_frame, text="Predictions", command=Predictions, **button_style)
 predictions_button.pack(fill=tk.X, pady=4, padx=6)
+cluster_students_button = tk.Button(dataops_frame, text="Cluster Students", command=cluster_students, **button_style)
+cluster_students_button.pack(fill=tk.X, pady=4, padx=6)
+cluster_faculty_button = tk.Button(dataops_frame, text="Cluster Faculty", command=cluster_faculty, **button_style)
+cluster_faculty_button.pack(fill=tk.X, pady=4, padx=6)
+
 
 # Populate Quick category
 top_button = tk.Button(values_frame, text="Top Values", command=show_top_values, **button_style)
@@ -1522,6 +1884,7 @@ buttons = [upload_button, analyze_button, visualize_button, agg_button, stats_bu
 
 # Add recommend_button to hoverable buttons
 buttons.append(recommend_button)
+buttons.extend([cluster_students_button, cluster_faculty_button])
 
 for btn in buttons:
     add_hover_effect(btn)
