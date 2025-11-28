@@ -16,35 +16,25 @@ except Exception:
     ner_module = None
 
 
-def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Normalize common column name variants to standard names:
-    - Status -> 'Status' (categorical)
-    - HasSideJob -> 'HasSideJob' (boolean/0-1)
-    - Salary -> 'Salary' (numeric)
-
-    This tries case-insensitive matching against common variants.
-    """
+def normalize_columns(df: pd.DataFrame, for_prediction: bool = False) -> pd.DataFrame:
+    """Normalize common column name variants to standard names."""
     col_map = {}
     lower_cols = {c.lower(): c for c in df.columns}
 
-    # helpers for finding a candidate
     def find_variant(possible):
-        # First try exact case-insensitive match
         for p in possible:
             if p.lower() in lower_cols:
                 return lower_cols[p.lower()]
-        # Next try substring matches (e.g., 'monthlyfamilyincome' contains 'income')
         for col in df.columns:
             lower_col = col.lower()
             for p in possible:
                 if p.lower() in lower_col:
-                        return col
-            return None
+                    return col
         return None
 
     # common variants
     status_col = find_variant(['Status', 'studentstatus', 'student_status', 'enrollment_status', 'state'])
-    hasjob_col = find_variant(['hasjob', 'HasSideJob', 'has_side_jobs', 'hasjobs', 'hassidejobs', 'employed'])
+    hasjob_col = find_variant(['hasjob', 'HasSideJob', 'has_side_jobs', 'hasjobs', 'hassidejobs', 'employed', 'HasSideJobs'])
     income_col = find_variant(['MonthlyFamilyIncome', 'income', 'pay', 'wage', 'compensation'])
 
     if status_col:
@@ -57,35 +47,41 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     if col_map:
         df = df.rename(columns=col_map)
 
-    # Coerce types where possible
-    # Accept either 'HasSideJob' or legacy 'hasjob' column names
+    # Only normalize Status if NOT doing prediction (to avoid data leakage)
+    if not for_prediction and 'Status' in df.columns:
+        if pd.api.types.is_numeric_dtype(df['Status']):
+            df['Status'] = df['Status'].fillna(0).astype(int).clip(0, 1)
+        else:
+            df['Status'] = df['Status'].astype(str).str.lower().str.strip().apply(
+                lambda x: 1 if 'enrolled' in x else 0
+            ).astype(int)
+
+    # Normalize HasSideJob
     if 'HasSideJob' in df.columns or 'hasjob' in df.columns:
         try:
-            # Normalize to 'HasSideJob' column name before coercion
             if 'hasjob' in df.columns and 'HasSideJob' not in df.columns:
                 df = df.rename(columns={'hasjob': 'HasSideJob'})
-
-            # convert common truthy/falsy values to 0/1
+            
             df['HasSideJob'] = df['HasSideJob'].map(
                 lambda v: 1 if str(v).strip().lower() in ('1', 'true', 'yes', 'y', 't')
                 else (0 if str(v).strip().lower() in ('0', 'false', 'no', 'n', 'f') else v)
             )
-            # coerce to numeric (fill missing -> 0)
             df['HasSideJob'] = pd.to_numeric(df['HasSideJob'], errors='coerce').fillna(0).astype(int)
         except Exception:
             pass
 
+    # Normalize MonthlyFamilyIncome
     if 'MonthlyFamilyIncome' in df.columns:
-        try:
-            df['MonthlyFamilyIncome'] = df['MonthlyFamilyIncome'].astype(str)
-        except Exception:
+        # For prediction, we need to handle this differently to avoid data leakage
+        if for_prediction:
+            # Use the same encoding as training - you might need to pass a pre-fitted encoder
             pass
-
-    if 'MonthlyFamilyIncome' in df.columns:
-        try:
-            df['MonthlyFamilyIncome'] = pd.to_numeric(df['MonthlyFamilyIncome'], errors='coerce')
-        except Exception:
-            pass
+        else:
+            # Convert categorical income to numeric codes
+            if not pd.api.types.is_numeric_dtype(df['MonthlyFamilyIncome']):
+                df['MonthlyFamilyIncome'] = df['MonthlyFamilyIncome'].astype('category').cat.codes
+            # Scale to 0-1 range for better model performance
+            df['MonthlyFamilyIncome'] = (df['MonthlyFamilyIncome'] - df['MonthlyFamilyIncome'].min()) / (df['MonthlyFamilyIncome'].max() - df['MonthlyFamilyIncome'].min())
 
     return df
 
@@ -289,279 +285,262 @@ def analyze_relationship():
         messagebox.showerror("Error", f"An error occurred: {e}")
 
 def Predictions():
-    """Run a simple supervised prediction using the normalized category columns.
-
-    User picks one of the available target columns (Status, Salary, HasSideJob).
-    - If target is 'Status' or non-numeric -> classification (RandomForestClassifier)
-    - If target is 'Salary' -> regression (RandomForestRegressor)
-
-    Shows basic metrics, feature importance, and a quick plot in the visualization panel.
-    """
+    """Run a simple supervised prediction using the normalized category columns."""
     try:
         if 'df' not in globals() or df is None or df.empty:
             messagebox.showerror("Error", "No data available for predictions.")
             return
 
-        # Work on a normalized copy
-        data = normalize_columns(df.copy())
+        # First, let's check the original data size
+        original_size = len(df)
+        messagebox.showinfo("Data Info", f"Original dataset size: {original_size} students")
 
-        # Determine which of the canonical columns exist
-        available = []
-        for c in ('Status', 'Salary', 'HasSideJob', 'hasjob'):
-            if c in data.columns and c not in available:
-                available.append(c)
+        # Work on a copy of the original data
+        data = df.copy()
+        
+        # Manual normalization WITHOUT dropping any rows yet
+        if 'Status' in data.columns:
+            if pd.api.types.is_numeric_dtype(data['Status']):
+                data['Status'] = data['Status'].fillna(0).astype(int).clip(0, 1)
+            else:
+                data['Status'] = data['Status'].astype(str).str.lower().str.strip().apply(
+                    lambda x: 1 if 'enrolled' in x else 0
+                ).astype(int)
 
-        # Map any lowercase hasjob to HasSideJob
-        if 'hasjob' in data.columns and 'HasSideJob' not in data.columns:
-            data = data.rename(columns={'hasjob': 'HasSideJob'})
-            if 'HasSideJob' not in available:
-                available.append('HasSideJob')
-
-        # Currently only predicting 'Status' is supported (uses Salary + HasSideJob as features)
-        targets = ['Status'] if 'Status' in data.columns else []
-        if not targets:
-            messagebox.showerror("Error", "No 'Status' column found. Predictions currently support predicting 'Status' only.")
-            return
-
-        # Ask user which column to predict
-        choice = simpledialog.askstring("Predict", f"Which column to predict? Options: {', '.join(targets)}")
-        if not choice:
-            return
-        choice = choice.strip()
-        if choice not in targets:
-            messagebox.showerror("Invalid choice", f"Please pick one of: {', '.join(targets)}")
-            return
-
-        # Prepare dataset: if predicting Status, require both Salary and HasSideJob
-        if choice == 'Status':
-            required = ['HasSideJob', 'MonthlyFamilyIncome']
-            missing = [c for c in required if c not in data.columns]
-            if missing:
-                messagebox.showerror("Error", f"Predicting 'Status' requires columns: {', '.join(required)}. Missing: {', '.join(missing)}")
-                return
-            features = required
-        else:
-            features = [c for c in ['HasSideJob', 'MonthlyFamilyIncome', 'Status'] if c in data.columns and c != choice]
-            if not features:
-                messagebox.showerror("Error", "Not enough feature columns available to predict.")
-                return
-
-        # Drop rows with missing values in selected columns
-        use_cols = features + [choice]
-        data = data[use_cols].dropna()
-        if data.empty:
-            messagebox.showerror("Error", "No rows with complete data for the selected columns.")
-            return
-
-        # Build X, y
-        X = data[features].copy()
-        y = data[choice].copy()
-
-        # Ensure numeric features
-        for col in X.columns:
-            if X[col].dtype == 'object':
-                try:
-                    X[col] = pd.to_numeric(X[col], errors='coerce')
-                except Exception:
-                    X[col] = X[col].astype('category').cat.codes
-
-        # Decide task type
-        is_regression = pd.api.types.is_numeric_dtype(y) and choice == 'Salary'
-
-        # Lazy import of sklearn
-        try:
-            from sklearn.model_selection import train_test_split
-            from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-            from sklearn.preprocessing import LabelEncoder, StandardScaler
-            from sklearn.metrics import accuracy_score, classification_report, mean_squared_error, r2_score, confusion_matrix
-            # Suppress the specific sklearn UndefinedMetricWarning which emits:
-            # "Precision is ill-defined and being set to 0.0 in labels with no predicted samples."
-            try:
-                from sklearn.exceptions import UndefinedMetricWarning
-                import warnings
-                warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
-            except Exception:
-                pass
-        except Exception:
-            messagebox.showerror("Missing package", "Please install scikit-learn to run predictions: pip install scikit-learn")
-            return
-
-        # Encode target if needed
-        le = None
-        if not is_regression:
-            # classification target -> ensure labels numeric
-            le = LabelEncoder()
-            try:
-                y_enc = le.fit_transform(y.astype(str))
-            except Exception:
-                y_enc = le.fit_transform(y.fillna(''))
-            y = y_enc
-
-        # Split
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=(y if not is_regression else None))
-
-        # Scale numeric features when regression
-        scaler = StandardScaler()
-        try:
-            X_train_scaled = scaler.fit_transform(X_train)
-            X_test_scaled = scaler.transform(X_test)
-        except Exception:
-            X_train_scaled = X_train.values
-            X_test_scaled = X_test.values
-
-        if is_regression:
-            model = RandomForestRegressor(n_estimators=100, random_state=42)
-            model.fit(X_train_scaled, y_train)
-            preds = model.predict(X_test_scaled)
-            rmse = mean_squared_error(y_test, preds, squared=False)
-            r2 = r2_score(y_test, preds)
-            msg = f"Regression Results for {choice}:\nRMSE: {rmse:.3f}\nR^2: {r2:.3f}"
-            messagebox.showinfo("Prediction Results", msg)
-
-            # Feature importance
-            try:
-                imp = model.feature_importances_
-                imp_text = "\n".join([f"{f}: {v:.4f}" for f, v in zip(features, imp)])
-                messagebox.showinfo("Feature Importances", imp_text)
-            except Exception:
-                pass
-
-            # Quick plot: actual vs predicted
-            try:
-                fig, ax = plt.subplots(figsize=(6,4))
-                ax.scatter(y_test, preds, alpha=0.6)
-                ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
-                ax.set_xlabel('Actual')
-                ax.set_ylabel('Predicted')
-                ax.set_title(f'Actual vs Predicted ({choice})')
-                for widget in visualization_frame.winfo_children():
-                    widget.destroy()
-                canvas = FigureCanvasTkAgg(fig, master=visualization_frame)
-                canvas.draw()
-                canvas.get_tk_widget().pack(fill='both', expand=True)
-            except Exception:
-                pass
-
-            # Populate predictions panel with results (regression)
-            try:
-                results_df = X_test.copy()
-                results_df = results_df.reset_index(drop=True)
-                results_df['Actual'] = y_test
-                results_df['Predicted'] = preds
-
-                try:
-                    if str(predict_panel) not in right_vpaned.panes():
-                        right_vpaned.add(predict_panel)
-                    pred_var.set(True)
-                except Exception:
-                    pass
-
-                cols = ['idx'] + features + ['Actual', 'Predicted']
-                predict_tree.config(columns=cols)
-                for c in cols:
-                    predict_tree.heading(c, text=c)
-                    predict_tree.column(c, width=100, anchor=('center' if c == 'idx' else 'w'))
-                for item in predict_tree.get_children():
-                    predict_tree.delete(item)
-                for i, row in results_df.iterrows():
-                    vals = [i] + [row.get(f, '') for f in features] + [row['Actual'], row['Predicted']]
-                    predict_tree.insert('', 'end', values=vals)
-            except Exception:
-                pass
-
-        else:
-            model = RandomForestClassifier(n_estimators=200, random_state=42)
-            model.fit(X_train_scaled, y_train)
-            preds = model.predict(X_test_scaled)
-            acc = accuracy_score(y_test, preds)
-            # Avoid "Precision is ill-defined" warnings by setting zero_division.
-            # When a class has no predicted samples, precision is ill-defined;
-            # zero_division=0 assigns precision=0 for those labels and suppresses the warning.
-            report = classification_report(
-                y_test,
-                preds,
-                target_names=(le.classes_ if le is not None else None),
-                zero_division=0,
+        # Handle HasSideJob column
+        if 'HasSideJob' in data.columns:
+            data['HasSideJob'] = data['HasSideJob'].map(
+                lambda v: 1 if str(v).strip().lower() in ('1', 'true', 'yes', 'y', 't')
+                else (0 if str(v).strip().lower() in ('0', 'false', 'no', 'n', 'f') else v)
             )
-            msg = f"Classification Results for {choice}:\nAccuracy: {acc:.3f}\n\nSee detailed report window." 
-            messagebox.showinfo("Prediction Results", msg)
+            data['HasSideJob'] = pd.to_numeric(data['HasSideJob'], errors='coerce')
 
-            # Show classification report in a new window
-            try:
-                rpt_win = tk.Toplevel()
-                rpt_win.title('Classification Report')
-                text = tk.Text(rpt_win, wrap=tk.NONE)
-                text.pack(fill=tk.BOTH, expand=True)
-                text.insert(tk.END, report)
-                text.config(state=tk.DISABLED)
-            except Exception:
-                pass
+        # Handle MonthlyFamilyIncome
+        if 'MonthlyFamilyIncome' in data.columns:
+            if not pd.api.types.is_numeric_dtype(data['MonthlyFamilyIncome']):
+                data['MonthlyFamilyIncome'] = data['MonthlyFamilyIncome'].astype('category').cat.codes
+            # Scale to 0-1 range
+            data['MonthlyFamilyIncome'] = (data['MonthlyFamilyIncome'] - data['MonthlyFamilyIncome'].min()) / (data['MonthlyFamilyIncome'].max() - data['MonthlyFamilyIncome'].min())
 
-            # Feature importance
-            try:
-                imp = model.feature_importances_
-                imp_text = "\n".join([f"{f}: {v:.4f}" for f, v in zip(features, imp)])
-                messagebox.showinfo("Feature Importances", imp_text)
-            except Exception:
-                pass
+        # Check if we have the required columns
+        required = ['HasSideJob', 'MonthlyFamilyIncome', 'Status']
+        missing = [c for c in required if c not in data.columns]
+        if missing:
+            messagebox.showerror("Error", f"Missing required columns: {', '.join(missing)}")
+            return
 
-            # Quick plot: confusion matrix heatmap
-            try:
-                cm = confusion_matrix(y_test, preds)
-                fig, ax = plt.subplots(figsize=(5,4))
-                sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
-                ax.set_xlabel('Predicted')
-                ax.set_ylabel('Actual')
-                ax.set_title(f'Confusion Matrix ({choice})')
-                for widget in visualization_frame.winfo_children():
-                    widget.destroy()
-                canvas = FigureCanvasTkAgg(fig, master=visualization_frame)
-                canvas.draw()
-                canvas.get_tk_widget().pack(fill='both', expand=True)
-            except Exception:
-                pass
+        # Check for missing values BEFORE splitting
+        missing_info = data[required].isnull().sum()
+        if missing_info.sum() > 0:
+            messagebox.showwarning("Missing Data", 
+                                 f"Missing values found:\n{missing_info}\n\nThese rows will be removed.")
+        
+        # Remove rows with missing values in required columns
+        data_clean = data[required].dropna()
+        rows_removed = len(data) - len(data_clean)
+        
+        if rows_removed > 0:
+            messagebox.showinfo("Data Cleaning", f"Removed {rows_removed} rows with missing values")
+        
+        if len(data_clean) == 0:
+            messagebox.showerror("Error", "No data remaining after cleaning!")
+            return
 
-            # Populate predictions panel with classification results
-            try:
-                if le is not None:
-                    try:
-                        actual = le.inverse_transform(y_test)
-                        predicted = le.inverse_transform(preds)
-                    except Exception:
-                        actual = y_test
-                        predicted = preds
-                else:
-                    actual = y_test
-                    predicted = preds
+        # Prepare features and target
+        X = data_clean[['HasSideJob', 'MonthlyFamilyIncome']].copy()
+        y = data_clean['Status'].copy()
 
-                results_df = X_test.copy()
-                results_df = results_df.reset_index(drop=True)
-                results_df['Actual'] = actual
-                results_df['Predicted'] = predicted
+        # Check class distribution
+        enrolled_count = y.sum()
+        dropped_count = len(y) - enrolled_count
+        
+        messagebox.showinfo("Class Distribution", 
+                          f"Total students: {len(y)}\n"
+                          f"Enrolled: {enrolled_count} ({enrolled_count/len(y)*100:.1f}%)\n"
+                          f"Dropped: {dropped_count} ({dropped_count/len(y)*100:.1f}%)")
 
-                try:
-                    if str(predict_panel) not in right_vpaned.panes():
-                        right_vpaned.add(predict_panel)
-                    pred_var.set(True)
-                except Exception:
-                    pass
+        if enrolled_count == 0 or dropped_count == 0:
+            messagebox.showerror("Error", f"Need both enrolled and dropped students for prediction.")
+            return
 
-                cols = ['idx'] + features + ['Actual', 'Predicted']
-                predict_tree.config(columns=cols)
-                for c in cols:
-                    predict_tree.heading(c, text=c)
-                    predict_tree.column(c, width=100, anchor=('center' if c == 'idx' else 'w'))
-                for item in predict_tree.get_children():
-                    predict_tree.delete(item)
-                for i, row in results_df.iterrows():
-                    vals = [i] + [row.get(f, '') for f in features] + [row['Actual'], row['Predicted']]
-                    predict_tree.insert('', 'end', values=vals)
-            except Exception:
-                pass
+        # Import sklearn and other required libraries
+        try:
+            from sklearn.model_selection import train_test_split, cross_val_score
+            from sklearn.ensemble import RandomForestClassifier
+            from sklearn.preprocessing import StandardScaler
+            from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+            from sklearn.utils.class_weight import compute_class_weight
+            import numpy as np
+            import seaborn as sns  # Add this import
+            import matplotlib.colors as mcolors  # Add this import
+        except Exception as e:
+            messagebox.showerror("Missing package", f"Please install required packages: {e}")
+            return
+
+        # Split data - use 80% train, 20% test
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y
+        )
+
+        # Scale features
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        # Compute class weights to handle imbalance (with safety check)
+        try:
+            class_weights = compute_class_weight('balanced', classes=np.unique(y_train), y=y_train)
+            class_weight_dict = {0: class_weights[0], 1: class_weights[1]}
+        except Exception:
+            # Fallback if class_weight computation fails
+            class_weight_dict = 'balanced'
+
+        # Train model with class weights
+        model = RandomForestClassifier(
+            n_estimators=100,
+            random_state=42,
+            class_weight=class_weight_dict,
+            max_depth=5
+        )
+        
+        model.fit(X_train_scaled, y_train)
+
+        # Cross-validation
+        cv_scores = cross_val_score(model, X_train_scaled, y_train, cv=5, scoring='accuracy')
+        
+        # Predictions
+        y_pred = model.predict(X_test_scaled)
+        X_full_scaled = scaler.transform(X)
+        y_pred_full = model.predict(X_full_scaled)
+
+        # Calculate metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        full_accuracy = accuracy_score(y, y_pred_full)
+
+        # Show comprehensive results
+        result_msg = f"""
+Data Processing:
+- Original dataset: {original_size} students
+- After cleaning: {len(data_clean)} students
+- Rows removed: {rows_removed}
+
+Training/Test Split:
+- Training data: {len(X_train)} students
+- Test data: {len(X_test)} students
+
+Class Distribution (Training):
+- Enrolled: {y_train.sum()} students ({y_train.sum()/len(y_train)*100:.1f}%)
+- Dropped: {len(y_train) - y_train.sum()} students ({(len(y_train) - y_train.sum())/len(y_train)*100:.1f}%)
+
+Prediction Results:
+- Test Accuracy: {accuracy:.3f}
+- Cross-validation Scores: {[f'{s:.3f}' for s in cv_scores]}
+- Full Data Accuracy: {full_accuracy:.3f}
+
+Feature Importance:
+- HasSideJob: {model.feature_importances_[0]:.3f}
+- MonthlyFamilyIncome: {model.feature_importances_[1]:.3f}
+
+Final Prediction Distribution:
+- Predicted Enrolled: {y_pred_full.sum()} students
+- Predicted Dropped: {len(y_pred_full) - y_pred_full.sum()} students
+"""
+        # Display results in the auxiliary panel
+        if str(aux_panel) not in left_vpaned.panes():
+            left_vpaned.add(aux_panel)
+        aux_var.set(True)
+
+        # Clear previous contents in aux_panel (keep header)
+        for widget in aux_panel.winfo_children():
+            if widget != aux_header:
+                widget.destroy()
+
+        # Add text widget to aux_panel
+        text_frame = tk.Frame(aux_panel, bg="#1E1E2F")
+        text_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0,10))
+
+        results_text = tk.Text(text_frame, wrap=tk.WORD, bg="#282A36", fg="#F8F8F2", font=("Arial", 10))
+        results_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        scrollbar = ttk.Scrollbar(text_frame, orient=tk.VERTICAL, command=results_text.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        results_text.configure(yscrollcommand=scrollbar.set)
+
+        results_text.insert(tk.END, result_msg)
+        results_text.config(state=tk.DISABLED)
+
+        # Show confusion matrix with better visualization
+        cm = confusion_matrix(y, y_pred_full)
+        fig, ax = plt.subplots(figsize=(7, 5))
+
+        # Create the heatmap
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax,
+                xticklabels=['Predicted\nDropped', 'Predicted\nEnrolled'],
+                yticklabels=['Actual\nDropped', 'Actual\nEnrolled'],
+                cbar_kws={'label': 'Number of Students'},
+                annot_kws={'size': 12, 'weight': 'bold'})
+
+        # Customize the plot
+        ax.set_xlabel('\nPredicted Status', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Actual Status\n', fontsize=12, fontweight='bold')
+        ax.set_title('Confusion Matrix - Student Enrollment Prediction\n', fontsize=14, fontweight='bold')
+
+        # Add a grid to separate the quadrants
+        for i in range(3):
+            ax.axhline(i, color='white', linewidth=2)
+            ax.axvline(i, color='white', linewidth=2)
+
+        # Add interpretation text
+        interpretation = (
+            "Interpretation:\n"
+            "• Top-Left: Actually Dropped, Correctly Predicted ✓\n"
+            "• Top-Right: Actually Dropped, Wrongly Predicted as Enrolled ✗\n"
+            "• Bottom-Left: Actually Enrolled, Wrongly Predicted as Dropped ✗\n"
+            "• Bottom-Right: Actually Enrolled, Correctly Predicted ✓"
+        )
+
+        ax.text(2.5, 0.5, interpretation, transform=ax.transAxes, fontsize=10,
+                verticalalignment='center', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.7))
+
+        plt.tight_layout()
+
+        for widget in visualization_frame.winfo_children():
+            widget.destroy()
+        canvas = FigureCanvasTkAgg(fig, master=visualization_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill='both', expand=True)  # Fixed: removed extra parenthesis
+
+        # Update predictions panel
+        try:
+            results_df = X.copy()
+            results_df['Actual_Status'] = y.map({0: 'Dropped', 1: 'Enrolled'})
+            results_df['Predicted_Status'] = y_pred_full
+            results_df['Predicted_Status'] = results_df['Predicted_Status'].map({0: 'Dropped', 1: 'Enrolled'})
+            results_df = results_df.reset_index()
+
+            if str(predict_panel) not in right_vpaned.panes():
+                right_vpaned.add(predict_panel)
+            pred_var.set(True)
+
+            cols = ['index', 'HasSideJob', 'MonthlyFamilyIncome', 'Actual_Status', 'Predicted_Status']
+            predict_tree.config(columns=cols)
+            for c in cols:
+                predict_tree.heading(c, text=c)
+                predict_tree.column(c, width=100, anchor='center')
+            
+            for item in predict_tree.get_children():
+                predict_tree.delete(item)
+            
+            for i, row in results_df.iterrows():
+                vals = [i, row['HasSideJob'], f"{row['MonthlyFamilyIncome']:.3f}", 
+                       row['Actual_Status'], row['Predicted_Status']]
+                predict_tree.insert('', 'end', values=vals)
+                
+        except Exception as e:
+            print(f"Error updating predictions panel: {e}")
 
     except Exception as e:
-        messagebox.showerror("Prediction Error", f"An error occurred while running predictions: {e}")
-
+        messagebox.showerror("Prediction Error", f"An error occurred: {e}")
 
 def sort_data():
     try:
@@ -873,26 +852,25 @@ def recommend_faculty():
         except Exception:
             pass
 
-        # Populate side recommendations Treeview instead of a popup
-        # Clear existing entries (delete all children safely)
+        # Clear existing entries
         try:
             for item in recommend_tree.get_children():
                 recommend_tree.delete(item)
         except Exception:
             pass
 
-        # store results so selection handler can access full text
+        # Store results globally so selection handler can access them
         global recommend_results
-        recommend_results = results or []
+        recommend_results = results  # Store the entire results list
 
-        # Insert new items (overwrite previous)
+        # Insert new items
         try:
             for r in recommend_results:
                 name = r.get("name", "")
                 score = f"{r.get('score', 0):.2f}"
                 recommend_tree.insert("", "end", values=(name, score))
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error inserting into tree: {e}")
 
         # Update relationship label with top score summary
         if recommend_results:
