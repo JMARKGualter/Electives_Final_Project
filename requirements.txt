@@ -1,0 +1,7 @@
+pandas
+seaborn
+matplotlib
+spacy
+ttkbootstrap
+
+#install 

@@ -5,6 +5,89 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import simpledialog
+# Optional improved theming
+try:
+    import ttkbootstrap as tb
+except Exception:
+    tb = None
+try:
+    import ner as ner_module
+except Exception:
+    ner_module = None
+
+
+def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize common column name variants to standard names:
+    - Status -> 'Status' (categorical)
+    - HasSideJob -> 'HasSideJob' (boolean/0-1)
+    - Salary -> 'Salary' (numeric)
+
+    This tries case-insensitive matching against common variants.
+    """
+    col_map = {}
+    lower_cols = {c.lower(): c for c in df.columns}
+
+    # helpers for finding a candidate
+    def find_variant(possible):
+        # First try exact case-insensitive match
+        for p in possible:
+            if p.lower() in lower_cols:
+                return lower_cols[p.lower()]
+        # Next try substring matches (e.g., 'monthlyfamilyincome' contains 'income')
+        for col in df.columns:
+            lower_col = col.lower()
+            for p in possible:
+                if p.lower() in lower_col:
+                        return col
+            return None
+        return None
+
+    # common variants
+    status_col = find_variant(['Status', 'studentstatus', 'student_status', 'enrollment_status', 'state'])
+    hasjob_col = find_variant(['hasjob', 'HasSideJob', 'has_side_jobs', 'hasjobs', 'hassidejobs', 'employed'])
+    income_col = find_variant(['MonthlyFamilyIncome', 'income', 'pay', 'wage', 'compensation'])
+
+    if status_col:
+        col_map[status_col] = 'Status'
+    if hasjob_col:
+        col_map[hasjob_col] = 'HasSideJob'
+    if income_col:
+        col_map[income_col] = 'MonthlyFamilyIncome'
+
+    if col_map:
+        df = df.rename(columns=col_map)
+
+    # Coerce types where possible
+    # Accept either 'HasSideJob' or legacy 'hasjob' column names
+    if 'HasSideJob' in df.columns or 'hasjob' in df.columns:
+        try:
+            # Normalize to 'HasSideJob' column name before coercion
+            if 'hasjob' in df.columns and 'HasSideJob' not in df.columns:
+                df = df.rename(columns={'hasjob': 'HasSideJob'})
+
+            # convert common truthy/falsy values to 0/1
+            df['HasSideJob'] = df['HasSideJob'].map(
+                lambda v: 1 if str(v).strip().lower() in ('1', 'true', 'yes', 'y', 't')
+                else (0 if str(v).strip().lower() in ('0', 'false', 'no', 'n', 'f') else v)
+            )
+            # coerce to numeric (fill missing -> 0)
+            df['HasSideJob'] = pd.to_numeric(df['HasSideJob'], errors='coerce').fillna(0).astype(int)
+        except Exception:
+            pass
+
+    if 'MonthlyFamilyIncome' in df.columns:
+        try:
+            df['MonthlyFamilyIncome'] = df['MonthlyFamilyIncome'].astype(str)
+        except Exception:
+            pass
+
+    if 'MonthlyFamilyIncome' in df.columns:
+        try:
+            df['MonthlyFamilyIncome'] = pd.to_numeric(df['MonthlyFamilyIncome'], errors='coerce')
+        except Exception:
+            pass
+
+    return df
 
 
 # Function to upload CSV file
@@ -45,6 +128,11 @@ def upload_file():
             visualize_button.config(state=tk.NORMAL)
             analyze_button.config(state=tk.NORMAL)
             save_button.config(state=tk.NORMAL)
+            # Enable Recommend Faculty button when data is loaded
+            try:
+                recommend_button.config(state=tk.NORMAL)
+            except NameError:
+                pass
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
 
@@ -199,6 +287,280 @@ def analyze_relationship():
 
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
+
+def Predictions():
+    """Run a simple supervised prediction using the normalized category columns.
+
+    User picks one of the available target columns (Status, Salary, HasSideJob).
+    - If target is 'Status' or non-numeric -> classification (RandomForestClassifier)
+    - If target is 'Salary' -> regression (RandomForestRegressor)
+
+    Shows basic metrics, feature importance, and a quick plot in the visualization panel.
+    """
+    try:
+        if 'df' not in globals() or df is None or df.empty:
+            messagebox.showerror("Error", "No data available for predictions.")
+            return
+
+        # Work on a normalized copy
+        data = normalize_columns(df.copy())
+
+        # Determine which of the canonical columns exist
+        available = []
+        for c in ('Status', 'Salary', 'HasSideJob', 'hasjob'):
+            if c in data.columns and c not in available:
+                available.append(c)
+
+        # Map any lowercase hasjob to HasSideJob
+        if 'hasjob' in data.columns and 'HasSideJob' not in data.columns:
+            data = data.rename(columns={'hasjob': 'HasSideJob'})
+            if 'HasSideJob' not in available:
+                available.append('HasSideJob')
+
+        # Currently only predicting 'Status' is supported (uses Salary + HasSideJob as features)
+        targets = ['Status'] if 'Status' in data.columns else []
+        if not targets:
+            messagebox.showerror("Error", "No 'Status' column found. Predictions currently support predicting 'Status' only.")
+            return
+
+        # Ask user which column to predict
+        choice = simpledialog.askstring("Predict", f"Which column to predict? Options: {', '.join(targets)}")
+        if not choice:
+            return
+        choice = choice.strip()
+        if choice not in targets:
+            messagebox.showerror("Invalid choice", f"Please pick one of: {', '.join(targets)}")
+            return
+
+        # Prepare dataset: if predicting Status, require both Salary and HasSideJob
+        if choice == 'Status':
+            required = ['HasSideJob', 'MonthlyFamilyIncome']
+            missing = [c for c in required if c not in data.columns]
+            if missing:
+                messagebox.showerror("Error", f"Predicting 'Status' requires columns: {', '.join(required)}. Missing: {', '.join(missing)}")
+                return
+            features = required
+        else:
+            features = [c for c in ['HasSideJob', 'MonthlyFamilyIncome', 'Status'] if c in data.columns and c != choice]
+            if not features:
+                messagebox.showerror("Error", "Not enough feature columns available to predict.")
+                return
+
+        # Drop rows with missing values in selected columns
+        use_cols = features + [choice]
+        data = data[use_cols].dropna()
+        if data.empty:
+            messagebox.showerror("Error", "No rows with complete data for the selected columns.")
+            return
+
+        # Build X, y
+        X = data[features].copy()
+        y = data[choice].copy()
+
+        # Ensure numeric features
+        for col in X.columns:
+            if X[col].dtype == 'object':
+                try:
+                    X[col] = pd.to_numeric(X[col], errors='coerce')
+                except Exception:
+                    X[col] = X[col].astype('category').cat.codes
+
+        # Decide task type
+        is_regression = pd.api.types.is_numeric_dtype(y) and choice == 'Salary'
+
+        # Lazy import of sklearn
+        try:
+            from sklearn.model_selection import train_test_split
+            from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+            from sklearn.preprocessing import LabelEncoder, StandardScaler
+            from sklearn.metrics import accuracy_score, classification_report, mean_squared_error, r2_score, confusion_matrix
+            # Suppress the specific sklearn UndefinedMetricWarning which emits:
+            # "Precision is ill-defined and being set to 0.0 in labels with no predicted samples."
+            try:
+                from sklearn.exceptions import UndefinedMetricWarning
+                import warnings
+                warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
+            except Exception:
+                pass
+        except Exception:
+            messagebox.showerror("Missing package", "Please install scikit-learn to run predictions: pip install scikit-learn")
+            return
+
+        # Encode target if needed
+        le = None
+        if not is_regression:
+            # classification target -> ensure labels numeric
+            le = LabelEncoder()
+            try:
+                y_enc = le.fit_transform(y.astype(str))
+            except Exception:
+                y_enc = le.fit_transform(y.fillna(''))
+            y = y_enc
+
+        # Split
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=(y if not is_regression else None))
+
+        # Scale numeric features when regression
+        scaler = StandardScaler()
+        try:
+            X_train_scaled = scaler.fit_transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
+        except Exception:
+            X_train_scaled = X_train.values
+            X_test_scaled = X_test.values
+
+        if is_regression:
+            model = RandomForestRegressor(n_estimators=100, random_state=42)
+            model.fit(X_train_scaled, y_train)
+            preds = model.predict(X_test_scaled)
+            rmse = mean_squared_error(y_test, preds, squared=False)
+            r2 = r2_score(y_test, preds)
+            msg = f"Regression Results for {choice}:\nRMSE: {rmse:.3f}\nR^2: {r2:.3f}"
+            messagebox.showinfo("Prediction Results", msg)
+
+            # Feature importance
+            try:
+                imp = model.feature_importances_
+                imp_text = "\n".join([f"{f}: {v:.4f}" for f, v in zip(features, imp)])
+                messagebox.showinfo("Feature Importances", imp_text)
+            except Exception:
+                pass
+
+            # Quick plot: actual vs predicted
+            try:
+                fig, ax = plt.subplots(figsize=(6,4))
+                ax.scatter(y_test, preds, alpha=0.6)
+                ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+                ax.set_xlabel('Actual')
+                ax.set_ylabel('Predicted')
+                ax.set_title(f'Actual vs Predicted ({choice})')
+                for widget in visualization_frame.winfo_children():
+                    widget.destroy()
+                canvas = FigureCanvasTkAgg(fig, master=visualization_frame)
+                canvas.draw()
+                canvas.get_tk_widget().pack(fill='both', expand=True)
+            except Exception:
+                pass
+
+            # Populate predictions panel with results (regression)
+            try:
+                results_df = X_test.copy()
+                results_df = results_df.reset_index(drop=True)
+                results_df['Actual'] = y_test
+                results_df['Predicted'] = preds
+
+                try:
+                    if str(predict_panel) not in right_vpaned.panes():
+                        right_vpaned.add(predict_panel)
+                    pred_var.set(True)
+                except Exception:
+                    pass
+
+                cols = ['idx'] + features + ['Actual', 'Predicted']
+                predict_tree.config(columns=cols)
+                for c in cols:
+                    predict_tree.heading(c, text=c)
+                    predict_tree.column(c, width=100, anchor=('center' if c == 'idx' else 'w'))
+                for item in predict_tree.get_children():
+                    predict_tree.delete(item)
+                for i, row in results_df.iterrows():
+                    vals = [i] + [row.get(f, '') for f in features] + [row['Actual'], row['Predicted']]
+                    predict_tree.insert('', 'end', values=vals)
+            except Exception:
+                pass
+
+        else:
+            model = RandomForestClassifier(n_estimators=200, random_state=42)
+            model.fit(X_train_scaled, y_train)
+            preds = model.predict(X_test_scaled)
+            acc = accuracy_score(y_test, preds)
+            # Avoid "Precision is ill-defined" warnings by setting zero_division.
+            # When a class has no predicted samples, precision is ill-defined;
+            # zero_division=0 assigns precision=0 for those labels and suppresses the warning.
+            report = classification_report(
+                y_test,
+                preds,
+                target_names=(le.classes_ if le is not None else None),
+                zero_division=0,
+            )
+            msg = f"Classification Results for {choice}:\nAccuracy: {acc:.3f}\n\nSee detailed report window." 
+            messagebox.showinfo("Prediction Results", msg)
+
+            # Show classification report in a new window
+            try:
+                rpt_win = tk.Toplevel()
+                rpt_win.title('Classification Report')
+                text = tk.Text(rpt_win, wrap=tk.NONE)
+                text.pack(fill=tk.BOTH, expand=True)
+                text.insert(tk.END, report)
+                text.config(state=tk.DISABLED)
+            except Exception:
+                pass
+
+            # Feature importance
+            try:
+                imp = model.feature_importances_
+                imp_text = "\n".join([f"{f}: {v:.4f}" for f, v in zip(features, imp)])
+                messagebox.showinfo("Feature Importances", imp_text)
+            except Exception:
+                pass
+
+            # Quick plot: confusion matrix heatmap
+            try:
+                cm = confusion_matrix(y_test, preds)
+                fig, ax = plt.subplots(figsize=(5,4))
+                sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+                ax.set_xlabel('Predicted')
+                ax.set_ylabel('Actual')
+                ax.set_title(f'Confusion Matrix ({choice})')
+                for widget in visualization_frame.winfo_children():
+                    widget.destroy()
+                canvas = FigureCanvasTkAgg(fig, master=visualization_frame)
+                canvas.draw()
+                canvas.get_tk_widget().pack(fill='both', expand=True)
+            except Exception:
+                pass
+
+            # Populate predictions panel with classification results
+            try:
+                if le is not None:
+                    try:
+                        actual = le.inverse_transform(y_test)
+                        predicted = le.inverse_transform(preds)
+                    except Exception:
+                        actual = y_test
+                        predicted = preds
+                else:
+                    actual = y_test
+                    predicted = preds
+
+                results_df = X_test.copy()
+                results_df = results_df.reset_index(drop=True)
+                results_df['Actual'] = actual
+                results_df['Predicted'] = predicted
+
+                try:
+                    if str(predict_panel) not in right_vpaned.panes():
+                        right_vpaned.add(predict_panel)
+                    pred_var.set(True)
+                except Exception:
+                    pass
+
+                cols = ['idx'] + features + ['Actual', 'Predicted']
+                predict_tree.config(columns=cols)
+                for c in cols:
+                    predict_tree.heading(c, text=c)
+                    predict_tree.column(c, width=100, anchor=('center' if c == 'idx' else 'w'))
+                for item in predict_tree.get_children():
+                    predict_tree.delete(item)
+                for i, row in results_df.iterrows():
+                    vals = [i] + [row.get(f, '') for f in features] + [row['Actual'], row['Predicted']]
+                    predict_tree.insert('', 'end', values=vals)
+            except Exception:
+                pass
+
+    except Exception as e:
+        messagebox.showerror("Prediction Error", f"An error occurred while running predictions: {e}")
 
 
 def sort_data():
@@ -486,8 +848,71 @@ def configure_dropdown(menu):
     menu.configure(background="#6272A4", foreground="#F8F8F2", font=("Arial", 12), activebackground="#44475A")
 
 
+def recommend_faculty():
+    """Ask user for a subject and show top recommended faculty members."""
+    try:
+        if 'df' not in globals() or df is None or df.empty:
+            messagebox.showerror("Error", "No data available.")
+            return
+
+        if ner_module is None:
+            messagebox.showerror("spaCy Missing", "spaCy or the NER helper module is not available. Install spaCy and the model (see requirements).")
+            return
+
+        subject = simpledialog.askstring("Recommend Faculty", "Enter subject/topic to find best faculty for:")
+        if not subject:
+            return
+
+        results = ner_module.rank_faculty(df, subject, top_n=10)
+
+        # Ensure recommendations panel is visible
+        try:
+            if str(recommend_panel) not in right_vpaned.panes():
+                right_vpaned.add(recommend_panel)
+            rec_var.set(True)
+        except Exception:
+            pass
+
+        # Populate side recommendations Treeview instead of a popup
+        # Clear existing entries (delete all children safely)
+        try:
+            for item in recommend_tree.get_children():
+                recommend_tree.delete(item)
+        except Exception:
+            pass
+
+        # store results so selection handler can access full text
+        global recommend_results
+        recommend_results = results or []
+
+        # Insert new items (overwrite previous)
+        try:
+            for r in recommend_results:
+                name = r.get("name", "")
+                score = f"{r.get('score', 0):.2f}"
+                recommend_tree.insert("", "end", values=(name, score))
+        except Exception:
+            pass
+
+        # Update relationship label with top score summary
+        if recommend_results:
+            top = recommend_results[0]
+            relationship_label.config(text=f"Top match: {top.get('name')} ({top.get('score'):.2f})")
+        else:
+            relationship_label.config(text="No recommendations found.")
+
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+
+
 # Initialize GUI
-root = tk.Tk()
+# Note: theme persistence and sash animations are currently disabled.
+
+# Use ttkbootstrap Window when available for nicer widgets
+if tb:
+    root = tb.Window(themename='darkly')
+else:
+    root = tk.Tk()
 root.title("Data Analysis Dashboard")
 root.geometry("1920x1080")
 root.state("zoomed")
@@ -507,10 +932,20 @@ right_frame = tk.Frame(paned_window, bg="#282A36")
 paned_window.add(right_frame)
 paned_window.paneconfigure(right_frame, minsize=600)
 
-# Treeview (Data Table)
+# Treeview (Data Table) with both scrollbars inside a frame
 columns = ["A", "B", "C", "D"]
-data_tree = ttk.Treeview(left_frame, columns=columns, show="headings", style="Custom.Treeview")
-data_tree.pack(fill=tk.BOTH, expand=True)
+data_tree_frame = tk.Frame(left_frame, bg="#282A36")
+data_tree_frame.pack(fill=tk.BOTH, expand=True)
+
+data_tree = ttk.Treeview(data_tree_frame, columns=columns, show="headings", style="Custom.Treeview")
+vsb = ttk.Scrollbar(data_tree_frame, orient=tk.VERTICAL, command=data_tree.yview)
+hsb = ttk.Scrollbar(data_tree_frame, orient=tk.HORIZONTAL, command=data_tree.xview)
+data_tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+data_tree.grid(row=0, column=0, sticky="nsew")
+vsb.grid(row=0, column=1, sticky="ns")
+hsb.grid(row=1, column=0, sticky="ew")
+data_tree_frame.grid_rowconfigure(0, weight=1)
+data_tree_frame.grid_columnconfigure(0, weight=1)
 
 # Search Feature
 search_frame = tk.Frame(left_frame, bg="#282A36")
@@ -523,93 +958,523 @@ search_entry.pack(side=tk.LEFT, padx=5, pady=5, fill=tk.X, expand=True)
 search_button = tk.Button(search_frame, text="Search", command=lambda: print("Search"), bg="#6272A4", fg="#F8F8F2", font=("Arial", 12))
 search_button.pack(side=tk.RIGHT, padx=5, pady=5)
 
-# Data Controls Frame
-data_controls_frame = tk.Frame(left_frame, bg="#282A36")
-data_controls_frame.pack(fill=tk.X)
 
-# Button Style
+# Controls container (collapsible categories)
+data_controls_frame = tk.Frame(left_frame, bg="#282A36")
+data_controls_frame.pack(fill=tk.BOTH, side=tk.TOP, padx=6, pady=6)
+
+# Small left-panel collapse/restore toggle
+left_restore_btn = None
+def toggle_left_panel():
+    global left_restore_btn
+    try:
+        if str(left_frame) in paned_window.panes():
+            # hide left frame
+            paned_window.forget(left_frame)
+            # place a small restore button at the left edge
+            left_restore_btn = tk.Button(root, text="▶", bg="#6272A4", fg="#F8F8F2", command=toggle_left_panel)
+            left_restore_btn.place(x=0, y=120, width=28, height=60)
+        else:
+            # restore left frame
+            if left_restore_btn:
+                try:
+                    left_restore_btn.destroy()
+                except Exception:
+                    pass
+                left_restore_btn = None
+            # add left_frame back to paned_window (before right_frame if possible)
+            try:
+                paned_window.add(left_frame)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+# Left sidebar (VS Code-style) and category panels
+left_sidebar = tk.Frame(left_frame, width=56, bg="#23232B")
+left_sidebar.pack(side=tk.LEFT, fill=tk.Y)
+
+# Small helper to create narrow sidebar buttons
+def _sb_button(text, command):
+    btn = tk.Button(left_sidebar, text=text, width=6, bg="#2E2F3A", fg="#F8F8F2", relief=tk.FLAT, command=command)
+    btn.pack(pady=6)
+    return btn
+
+# Controls area to the right of the sidebar
+controls_pane = tk.Frame(left_frame, bg="#282A36")
+controls_pane.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+# Recreate the data tree inside the controls pane so it sits to the right of the sidebar
+try:
+    data_tree_frame.destroy()
+except Exception:
+    pass
+data_tree_frame = tk.Frame(controls_pane, bg="#282A36")
+data_tree_frame.pack(fill=tk.BOTH, expand=True)
+
+data_tree = ttk.Treeview(data_tree_frame, columns=columns, show="headings", style="Custom.Treeview")
+vsb = ttk.Scrollbar(data_tree_frame, orient=tk.VERTICAL, command=data_tree.yview)
+hsb = ttk.Scrollbar(data_tree_frame, orient=tk.HORIZONTAL, command=data_tree.xview)
+data_tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+data_tree.grid(row=0, column=0, sticky="nsew")
+vsb.grid(row=0, column=1, sticky="ns")
+hsb.grid(row=1, column=0, sticky="ew")
+data_tree_frame.grid_rowconfigure(0, weight=1)
+data_tree_frame.grid_columnconfigure(0, weight=1)
+
+# Recreate the search frame inside controls_pane as well
+try:
+    search_frame.destroy()
+except Exception:
+    pass
+search_frame = tk.Frame(controls_pane, bg="#282A36")
+search_frame.pack(fill=tk.X)
+search_label = tk.Label(search_frame, text="Search", bg="#44475A", fg="#F8F8F2", font=("Arial", 12))
+search_label.pack(side=tk.LEFT, padx=5, pady=5)
+search_var = tk.StringVar()
+search_entry = tk.Entry(search_frame, textvariable=search_var, font=("Arial", 12), bg="#44475A", fg="#F8F8F2", insertbackground="#F8F8F2")
+search_entry.pack(side=tk.LEFT, padx=5, pady=5, fill=tk.X, expand=True)
+search_button = tk.Button(search_frame, text="Search", command=lambda: print("Search"), bg="#6272A4", fg="#F8F8F2", font=("Arial", 12))
+search_button.pack(side=tk.RIGHT, padx=5, pady=5)
+
+# Category frames (only one visible at a time)
+file_frame = tk.Frame(controls_pane, bg="#282A36")
+analysis_frame = tk.Frame(controls_pane, bg="#282A36")
+dataops_frame = tk.Frame(controls_pane, bg="#282A36")
+values_frame = tk.Frame(controls_pane, bg="#282A36")
+
+category_frames = {
+    'Files': file_frame,
+    'Analysis': analysis_frame,
+    'Data': dataops_frame,
+    'Quick': values_frame,
+}
+
+def show_category(name):
+    # hide all
+    for f in category_frames.values():
+        f.pack_forget()
+    # show selected
+    category_frames[name].pack(fill=tk.BOTH, expand=True)
+
+# Sidebar buttons
+_sb_button('Files', lambda: show_category('Files'))
+_sb_button('Analysis', lambda: show_category('Analysis'))
+_sb_button('Data', lambda: show_category('Data'))
+_sb_button('Quick', lambda: show_category('Quick'))
+
+# Button style
 button_style = {"bg": "#6272A4", "fg": "#F8F8F2", "font": ("Arial", 12)}
 
-# Buttons for Controls
-upload_button = tk.Button(data_controls_frame, text="Upload CSV", command=lambda: print("Upload CSV"), **button_style)
-upload_button.grid(row=0, column=0, padx=10, pady=10)
+# Populate Files category
+upload_button = tk.Button(file_frame, text="Upload CSV", command=upload_file, **button_style)
+upload_button.pack(fill=tk.X, pady=4, padx=6)
+filter_button = tk.Button(file_frame, text="Filter Data", command=filter_data, **button_style)
+filter_button.pack(fill=tk.X, pady=4, padx=6)
 
-analyze_button = tk.Button(data_controls_frame, text="Analyze Relationship", command=lambda: print("Analyze"), state=tk.DISABLED, **button_style)
-analyze_button.grid(row=0, column=1, padx=10, pady=10)
+# Populate Analysis category
+analyze_button = tk.Button(analysis_frame, text="Analyze Relationship", command=analyze_relationship, state=tk.DISABLED, **button_style)
+analyze_button.pack(fill=tk.X, pady=4, padx=6)
+visualize_button = tk.Button(analysis_frame, text="Visualize Data", command=visualize_data, state=tk.DISABLED, **button_style)
+visualize_button.pack(fill=tk.X, pady=4, padx=6)
+recommend_button = tk.Button(analysis_frame, text="Recommend", command=recommend_faculty, state=tk.DISABLED, **button_style)
+recommend_button.pack(fill=tk.X, pady=4, padx=6)
 
-visualize_button = tk.Button(data_controls_frame, text="Visualize Data", command=lambda: print("Visualize"), state=tk.DISABLED, **button_style)
-visualize_button.grid(row=0, column=2, padx=10, pady=10)
+# Populate Data category
+agg_button = tk.Button(dataops_frame, text="Aggregations", command=show_aggregation_options, **button_style)
+agg_button.pack(fill=tk.X, pady=4, padx=6)
+stats_button = tk.Button(dataops_frame, text="Descriptive Statistics", command=show_descriptive_statistics, **button_style)
+stats_button.pack(fill=tk.X, pady=4, padx=6)
+clean_button = tk.Button(dataops_frame, text="Clean Null Data", command=clean_null_data, **button_style)
+clean_button.pack(fill=tk.X, pady=4, padx=6)
+save_button = tk.Button(dataops_frame, text="Save Visualization", command=save_visualization, state=tk.DISABLED, **button_style)
+save_button.pack(fill=tk.X, pady=4, padx=6)
+predictions_button = tk.Button(dataops_frame, text="Predictions", command=Predictions, **button_style)
+predictions_button.pack(fill=tk.X, pady=4, padx=6)
 
-sort_label = tk.Label(data_controls_frame, text="Sort By", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
-sort_label.grid(row=1, column=2, padx=10, pady=(10), sticky="w") 
+# Populate Quick category
+top_button = tk.Button(values_frame, text="Top Values", command=show_top_values, **button_style)
+top_button.pack(fill=tk.X, pady=4, padx=6)
+least_button = tk.Button(values_frame, text="Least Values", command=show_least_values, **button_style)
+least_button.pack(fill=tk.X, pady=4, padx=6)
+sort_label = tk.Label(values_frame, text="Sort By", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
+sort_label.pack(anchor='w', pady=(6,0), padx=6)
 sort_column_var = tk.StringVar()
-sort_menu = ttk.OptionMenu(data_controls_frame, sort_column_var, "")
-sort_menu.grid(row=1, column=3, padx=10, pady=10)
 
-agg_button = tk.Button(data_controls_frame, text="Aggregations", command=lambda: print("Aggregations"), **button_style)
-agg_button.grid(row=0, column=3, padx=10, pady=10)
 
-stats_button = tk.Button(data_controls_frame, text="Descriptive Statistics", command=lambda: print("Descriptive Stats"), **button_style)
-stats_button.grid(row=1, column=4, padx=10, pady=10)
+sort_menu = ttk.OptionMenu(values_frame, sort_column_var, "")
+sort_menu.pack(fill=tk.X, pady=4, padx=6)
 
-clean_button = tk.Button(data_controls_frame, text="Clean Null Data", command=lambda: print("Clean"), **button_style)
-clean_button.grid(row=1, column=0, padx=10, pady=10)
+# Show a default category
+show_category('Files')
 
-save_button = tk.Button(data_controls_frame, text="Save Visualization", command=save_visualization, state=tk.DISABLED, **button_style)
-save_button.grid(row=1, column=1, padx=10, pady=10)
-
-predictions_button = tk.Button(data_controls_frame, text="Predictions", command=predictions, **button_style)
-predictions_button.grid(row=0, column=4, padx=10, pady=10)
-
-# Add a button for filtering
-filter_button = tk.Button(data_controls_frame, text="Filter Data", command=filter_data, **button_style)
-filter_button.grid(row=5, column=2, padx=10, pady=10)
-
-top_button = tk.Button(data_controls_frame, text="Top Values", command=lambda: print("Top Values"), **button_style)
-top_button.grid(row=5, column=0, padx=10, pady=10)
-
-least_button = tk.Button(data_controls_frame, text="Least Values", command=lambda: print("Least Values"), **button_style)
-least_button.grid(row=5, column=1, padx=10, pady=10)
-
-# Column Selection for Analysis
-column_label = tk.Label(data_controls_frame, text="Select Column for Graph", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
-column_label.grid(row=2, column=0, padx=10, pady=10)
+# Column Selection & Graph Options moved into Analysis section (use pack to avoid mixing geometry managers)
+column_label = tk.Label(analysis_frame, text="Select Column for Graph", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
+column_label.pack(anchor='w', padx=6, pady=(8,0))
 column_var = tk.StringVar()
-column_menu = ttk.OptionMenu(data_controls_frame, column_var, "A")
-column_menu.grid(row=2, column=1, padx=10, pady=10)
+column_menu = ttk.OptionMenu(analysis_frame, column_var, "A")
+column_menu.pack(fill='x', padx=6, pady=4)
 
-column2_label = tk.Label(data_controls_frame, text="Select Second Column", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
-column2_label.grid(row=2, column=2, padx=10, pady=10)
+column2_label = tk.Label(analysis_frame, text="Select Second Column", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
+column2_label.pack(anchor='w', padx=6, pady=(4,0))
 column2_var = tk.StringVar()
-column2_menu = ttk.OptionMenu(data_controls_frame, column2_var, "B")
-column2_menu.grid(row=2, column=3, padx=10, pady=10)
+column2_menu = ttk.OptionMenu(analysis_frame, column2_var, "B")
+column2_menu.pack(fill='x', padx=6, pady=4)
 
 # Graph Type Selection
-graph_type_label = tk.Label(data_controls_frame, text="Graph Type", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
-graph_type_label.grid(row=4, column=0, padx=10, pady=10)
+graph_type_label = tk.Label(analysis_frame, text="Graph Type", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
+graph_type_label.pack(anchor='w', padx=6, pady=(6,0))
 graph_type_var = tk.StringVar(value="Histogram")
-graph_type_menu = ttk.OptionMenu(data_controls_frame, graph_type_var, "Histogram", "Histogram", "Bar", "Scatter", "Line")
-graph_type_menu.grid(row=4, column=1, padx=10, pady=10)
+graph_type_menu = ttk.OptionMenu(analysis_frame, graph_type_var, "Histogram", "Histogram", "Bar", "Scatter", "Line")
+graph_type_menu.pack(fill='x', padx=6, pady=4)
 
 # Color Picker
-color_label = tk.Label(data_controls_frame, text="Graph Color", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
-color_label.grid(row=4, column=2, padx=10, pady=10)
+color_label = tk.Label(analysis_frame, text="Graph Color", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
+color_label.pack(anchor='w', padx=6, pady=(6,0))
 color_var = tk.StringVar(value="blue")
-color_menu = ttk.OptionMenu(data_controls_frame, color_var, "blue", "blue", "red", "green", "purple", "orange")
-color_menu.grid(row=4, column=3, padx=10, pady=10)
+color_menu = ttk.OptionMenu(analysis_frame, color_var, "blue", "blue", "red", "green", "purple", "orange")
+color_menu.pack(fill='x', padx=6, pady=4)
 
-# Visualization Frame
-visualization_frame = tk.Frame(right_frame, bg="#1E1E2F")
-visualization_frame.pack(fill=tk.BOTH, expand=True)
+# Visibility toggles for View menu (default to visible)
+vis_var = tk.BooleanVar(value=True)
+aux_var = tk.BooleanVar(value=True)
+rec_var = tk.BooleanVar(value=True)
+det_var = tk.BooleanVar(value=True)
+pred_var = tk.BooleanVar(value=True)
 
-# Relationship Label
-relationship_label = tk.Label(right_frame, text="Correlation Results will appear here.", bg="#1E1E2F", fg="#F8F8F2", font=("Arial", 14))
-relationship_label.pack(padx=10, pady=10)
+# Theme definitions (light and dark)
+THEMES = {
+    'dark': {
+        'bg': '#1E1E2F',
+        'panel': '#282A36',
+        'accent': '#6272A4',
+        'muted': '#44475A',
+        'fg': '#F8F8F2',
+        'button_bg': '#6272A4',
+        'button_hover': '#4ea36e',
+        'tree_bg': '#282A36'
+    },
+    'light': {
+        'bg': '#F5F7FA',
+        'panel': '#FFFFFF',
+        'accent': '#3A7BD5',
+        'muted': '#E6EEF8',
+        'fg': '#0F172A',
+        'button_bg': '#3A7BD5',
+        'button_hover': '#2f66b0',
+        'tree_bg': '#FFFFFF'
+    }
+}
+
+current_theme = 'dark'
+
+def hex_to_rgb(h):
+    h = h.lstrip('#')
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+
+def rgb_to_hex(rgb):
+    return '#{:02x}{:02x}{:02x}'.format(*rgb)
+
+def interpolate_color(a, b, t):
+    ar, ag, ab = hex_to_rgb(a)
+    br, bgc, bb = hex_to_rgb(b)
+    return rgb_to_hex((int(ar + (br - ar) * t), int(ag + (bgc - ag) * t), int(ab + (bb - ab) * t)))
+
+def animate_theme_transition(old_bg, new_bg, steps=8, delay=30):
+    # Subtle background color animation for root + main panels
+    for i in range(steps):
+        t = (i + 1) / steps
+        color = interpolate_color(old_bg, new_bg, t)
+        root.after(int(i * delay), lambda c=color: root.configure(bg=c))
+        root.after(int(i * delay), lambda c=color: visualization_frame.configure(bg=c))
+
+def apply_theme(name):
+    global current_theme
+    if name not in THEMES:
+        return
+    old = THEMES.get(current_theme, THEMES['dark'])['bg']
+    theme = THEMES[name]
+    current_theme = name
+    # animate bg change
+    animate_theme_transition(old, theme['bg'])
+
+    # Apply colors
+    root.configure(bg=theme['bg'])
+    left_sidebar.configure(bg=theme['panel'])
+    controls_pane.configure(bg=theme['panel'])
+    data_tree_frame.configure(bg=theme['panel'])
+    visualization_frame.configure(bg=theme['bg'])
+    right_frame.configure(bg=theme['panel'])
+
+    # update style for Treeview
+    try:
+        style.configure("Custom.Treeview", background=theme['tree_bg'], fieldbackground=theme['panel'], foreground=theme['fg'])
+    except Exception:
+        pass
+
+    # update buttons if they exist
+    try:
+        btn_bg = theme['button_bg']
+        for btn in buttons:
+            btn.config(bg=btn_bg, fg=theme['fg'])
+    except Exception:
+        pass
+
+    # update detail text colors
+    try:
+        detail_text.config(bg=theme['bg'], fg=theme['fg'])
+    except Exception:
+        pass
+    # If ttkbootstrap is available, try to set a matching theme
+    try:
+        if tb:
+            tb_map = {'dark': 'darkly', 'light': 'flatly'}
+            tb_theme = tb_map.get(name, 'darkly')
+            try:
+                tb.Style().theme_use(tb_theme)
+            except Exception:
+                try:
+                    root.style.theme_use(tb_theme)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+
+# Replace the grid with nested PanedWindows so panels are resizable with sashes
+right_hpaned = tk.PanedWindow(right_frame, orient=tk.HORIZONTAL, sashwidth=6)
+right_hpaned.pack(fill=tk.BOTH, expand=True)
+
+# Left and right vertical paned windows inside the horizontal paned
+left_vpaned = tk.PanedWindow(right_hpaned, orient=tk.VERTICAL, sashwidth=6)
+right_vpaned = tk.PanedWindow(right_hpaned, orient=tk.VERTICAL, sashwidth=6)
+right_hpaned.add(left_vpaned)
+right_hpaned.add(right_vpaned)
+
+# Top-left: main visualization area
+visualization_frame = tk.Frame(left_vpaned, bg="#1E1E2F", bd=0)
+left_vpaned.add(visualization_frame)
+
+# header with close button for visualization
+viz_header = tk.Frame(visualization_frame, bg="#1E1E2F")
+viz_header.pack(fill=tk.X)
+viz_label = tk.Label(viz_header, text="Visualization", bg="#1E1E2F", fg="#F8F8F2", font=("Arial", 12))
+viz_label.pack(side=tk.LEFT, padx=6, pady=4)
+def _close_visualization():
+    try:
+        left_vpaned.forget(visualization_frame)
+        vis_var.set(False)
+    except Exception:
+        pass
+viz_close = tk.Button(viz_header, text="X", bg="#FF6F61", fg="#F8F8F2", width=3, command=_close_visualization)
+viz_close.pack(side=tk.RIGHT, padx=6, pady=4)
+
+# Bottom-left: auxiliary visualization / details
+aux_panel = tk.Frame(left_vpaned, bg="#1E1E2F")
+left_vpaned.add(aux_panel)
+aux_header = tk.Frame(aux_panel, bg="#1E1E2F")
+aux_header.pack(fill=tk.X)
+aux_label = tk.Label(aux_header, text="Auxiliary", bg="#1E1E2F", fg="#F8F8F2", font=("Arial", 12))
+aux_label.pack(side=tk.LEFT, padx=6, pady=4)
+def _close_aux():
+    try:
+        left_vpaned.forget(aux_panel)
+        aux_var.set(False)
+    except Exception:
+        pass
+aux_close = tk.Button(aux_header, text="X", bg="#FF6F61", fg="#F8F8F2", width=3, command=_close_aux)
+aux_close.pack(side=tk.RIGHT, padx=6, pady=4)
+
+# Top-right: recommendations list
+recommend_panel = tk.Frame(right_vpaned, bg="#282A36")
+right_vpaned.add(recommend_panel)
+recommend_panel.grid_rowconfigure(1, weight=1)
+recommend_header = tk.Frame(recommend_panel, bg="#282A36")
+recommend_header.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
+recommend_title = tk.Label(recommend_header, text="Recommendations", bg="#282A36", fg="#F8F8F2", font=("Arial", 14))
+recommend_title.pack(side=tk.LEFT)
+def _close_recommend():
+    try:
+        right_vpaned.forget(recommend_panel)
+        rec_var.set(False)
+    except Exception:
+        pass
+recommend_close = tk.Button(recommend_header, text="X", bg="#FF6F61", fg="#F8F8F2", width=3, command=_close_recommend)
+recommend_close.pack(side=tk.RIGHT)
+
+# Treeview to show recommended faculty (Name + Score)
+recommend_tree = ttk.Treeview(recommend_panel, columns=("Name", "Score"), show="headings")
+recommend_tree.heading("Name", text="Name")
+recommend_tree.heading("Score", text="Score")
+recommend_tree.column("Name", anchor="w")
+recommend_tree.column("Score", anchor="center", width=80)
+recommend_tree.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0,8))
+recommend_scroll = ttk.Scrollbar(recommend_panel, orient=tk.VERTICAL, command=recommend_tree.yview)
+recommend_scroll.grid(row=1, column=1, sticky="ns", pady=(0,8))
+recommend_tree.configure(yscrollcommand=recommend_scroll.set)
+
+# When a recommendation is selected, show the full bio/text in the detail panel
+def on_recommend_select(event):
+    try:
+        sel = recommend_tree.selection()
+        if not sel:
+            return
+        # Use index to map to last results list (preserves ordering)
+        idx = recommend_tree.index(sel[0])
+        if 'recommend_results' not in globals() or recommend_results is None:
+            return
+        if idx < 0 or idx >= len(recommend_results):
+            return
+        r = recommend_results[idx]
+        bio = r.get('text') or r.get('bio') or r.get('profile') or ''
+        # Display in detail_text
+        detail_text.config(state=tk.NORMAL)
+        detail_text.delete('1.0', tk.END)
+        detail_text.insert(tk.END, bio)
+        detail_text.config(state=tk.NORMAL)
+        detail_text.see('1.0')
+    except Exception:
+        pass
+
+recommend_tree.bind('<<TreeviewSelect>>', on_recommend_select)
+
+# Bottom-right: detail view for selected faculty
+detail_panel = tk.Frame(right_vpaned, bg="#282A36")
+right_vpaned.add(detail_panel)
+detail_header = tk.Frame(detail_panel, bg="#282A36")
+detail_header.pack(fill=tk.X)
+detail_title = tk.Label(detail_header, text="Details", bg="#282A36", fg="#F8F8F2", font=("Arial", 14))
+detail_title.pack(side=tk.LEFT, padx=8, pady=8)
+def _close_detail():
+    try:
+        right_vpaned.forget(detail_panel)
+        det_var.set(False)
+    except Exception:
+        pass
+detail_close = tk.Button(detail_header, text="X", bg="#FF6F61", fg="#F8F8F2", width=3, command=_close_detail)
+detail_close.pack(side=tk.RIGHT, padx=8, pady=8)
+
+# Text widget to show selected faculty bio or details (with its own scrollbar)
+detail_text_frame = tk.Frame(detail_panel, bg="#282A36")
+detail_text_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0,8))
+detail_text = tk.Text(detail_text_frame, wrap=tk.WORD, bg="#1E1E2F", fg="#F8F8F2", bd=0)
+detail_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+detail_scroll = ttk.Scrollbar(detail_text_frame, orient=tk.VERTICAL, command=detail_text.yview)
+detail_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+detail_text.configure(yscrollcommand=detail_scroll.set)
+
+# Right-most: predictions panel (shows recent prediction results)
+predict_panel = tk.Frame(right_vpaned, bg="#282A36")
+right_vpaned.add(predict_panel)
+predict_header = tk.Frame(predict_panel, bg="#282A36")
+predict_header.pack(fill=tk.X)
+predict_title = tk.Label(predict_header, text="Predictions", bg="#282A36", fg="#F8F8F2", font=("Arial", 14))
+predict_title.pack(side=tk.LEFT, padx=8, pady=8)
+def _close_predict():
+    try:
+        right_vpaned.forget(predict_panel)
+        pred_var.set(False)
+    except Exception:
+        pass
+predict_close = tk.Button(predict_header, text="X", bg="#FF6F61", fg="#F8F8F2", width=3, command=_close_predict)
+predict_close.pack(side=tk.RIGHT, padx=8, pady=8)
+
+# Treeview to show predictions (features + actual + predicted)
+predict_tree = ttk.Treeview(predict_panel, columns=("idx", "actual", "predicted"), show="headings")
+predict_tree.heading("idx", text="#")
+predict_tree.heading("actual", text="Actual")
+predict_tree.heading("predicted", text="Predicted")
+predict_tree.column("idx", width=40, anchor="center")
+predict_tree.column("actual", anchor="w")
+predict_tree.column("predicted", anchor="w")
+predict_tree.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0,8))
+predict_scroll = ttk.Scrollbar(predict_panel, orient=tk.VERTICAL, command=predict_tree.yview)
+predict_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+predict_tree.configure(yscrollcommand=predict_scroll.set)
+
+# Relationship label moved to top of visualization frame area
+relationship_label = tk.Label(visualization_frame, text="Correlation Results will appear here.", bg="#1E1E2F", fg="#F8F8F2", font=("Arial", 14))
+relationship_label.pack(anchor="nw", padx=10, pady=6)
+
+# Toggle helper used by View menu to show/hide panes
+def toggle_panel(panel, paned, var):
+    try:
+        if var.get():
+            # show panel if not already added
+            if str(panel) not in paned.panes():
+                paned.add(panel)
+        else:
+            # hide panel if present
+            if str(panel) in paned.panes():
+                paned.forget(panel)
+    except Exception:
+        pass
+
+# Menu for showing/hiding panels
+menubar = tk.Menu(root)
+view_menu = tk.Menu(menubar, tearoff=0)
+view_menu.add_checkbutton(label="Visualization", variable=vis_var, command=lambda: toggle_panel(visualization_frame, left_vpaned, vis_var))
+view_menu.add_checkbutton(label="Auxiliary", variable=aux_var, command=lambda: toggle_panel(aux_panel, left_vpaned, aux_var))
+view_menu.add_checkbutton(label="Recommendations", variable=rec_var, command=lambda: toggle_panel(recommend_panel, right_vpaned, rec_var))
+view_menu.add_checkbutton(label="Details", variable=det_var, command=lambda: toggle_panel(detail_panel, right_vpaned, det_var))
+view_menu.add_checkbutton(label="Predictions", variable=pred_var, command=lambda: toggle_panel(globals().get('predict_panel'), right_vpaned, pred_var))
+view_menu.add_separator()
+
+def restore_default_view():
+    """Re-add all main panels to their paned windows and set view toggles to True."""
+    try:
+        # Left side
+        if str(visualization_frame) not in left_vpaned.panes():
+            left_vpaned.add(visualization_frame)
+        if str(aux_panel) not in left_vpaned.panes():
+            left_vpaned.add(aux_panel)
+
+        # Right side
+        if str(recommend_panel) not in right_vpaned.panes():
+            right_vpaned.add(recommend_panel)
+        if str(detail_panel) not in right_vpaned.panes():
+            right_vpaned.add(detail_panel)
+        try:
+            p = globals().get('predict_panel')
+            if p is not None and str(p) not in right_vpaned.panes():
+                right_vpaned.add(p)
+        except Exception:
+            pass
+
+        # Ensure the vars reflect the visible state
+        vis_var.set(True)
+        aux_var.set(True)
+        rec_var.set(True)
+        det_var.set(True)
+        try:
+            pred_var.set(True)
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+
+# Note: sash animation helpers removed per user choice (Option B).
+
+view_menu.add_command(label="Restore Default Layout", command=restore_default_view)
+menubar.add_cascade(label="View", menu=view_menu)
+# Theme menu
+theme_menu = tk.Menu(menubar, tearoff=0)
+theme_menu.add_radiobutton(label="Dark", command=lambda: apply_theme('dark'))
+theme_menu.add_radiobutton(label="Light", command=lambda: apply_theme('light'))
+menubar.add_cascade(label="Theme", menu=theme_menu)
+root.config(menu=menubar)
 
 # Treeview Custom Styles
 style = ttk.Style()
 style.configure("Custom.Treeview", background="#282A36", foreground="#F8F8F2", rowheight=25, fieldbackground="#282A36")
 style.map("Custom.Treeview", background=[("selected", "#6272A4")], foreground=[("selected", "#F8F8F2")])
+
+# Apply default theme
+try:
+    apply_theme(current_theme)
+except Exception:
+    pass
 
 # Event Binding for Buttons
 upload_button.config(command=upload_file)
@@ -628,10 +1493,18 @@ filter_button.config(command=filter_data)
 
 # Function to change button color on hover
 def on_enter(e):
-    e.widget.config(bg="Green")
+    try:
+        th = THEMES.get(current_theme, THEMES['dark'])
+        e.widget.config(bg=th['button_hover'])
+    except Exception:
+        e.widget.config(bg="Green")
 
 def on_leave(e):
-    e.widget.config(bg="#6272A4")
+    try:
+        th = THEMES.get(current_theme, THEMES['dark'])
+        e.widget.config(bg=th['button_bg'])
+    except Exception:
+        e.widget.config(bg="#6272A4")
 
 # Function to perform sorting when sort_column_var changes
 def sort_on_selection(*args):
@@ -668,6 +1541,9 @@ def add_hover_effect(button):
 # Apply hover effect to all buttons
 buttons = [upload_button, analyze_button, visualize_button, agg_button, stats_button,
            clean_button, save_button, top_button, least_button, search_button, predictions_button, filter_button]
+
+# Add recommend_button to hoverable buttons
+buttons.append(recommend_button)
 
 for btn in buttons:
     add_hover_effect(btn)
