@@ -1,0 +1,41 @@
+FacultyID,Age,Gender,FieldOfExpertise,YearsExperience,TeachingLoad_Courses,TeachingLoad_Hours
+F-0001,43,Male,Digital Signal Processing,8,2,18
+F-0002,26,Male,"Logic, AI, Software Design",1,2,18
+F-0003,42,Male,"Microprocessors/Embedded, Software Design, Logic",8,4,33
+F-0004,45,Female,"Digital Signal Processing, Big Data",7,3,21
+F-0005,26,Female,"General Education, Digital Signal Processing",1,4,33
+F-0006,40,Female,"General Education, Networking, Microprocessors/Embedded",3,1,12
+F-0007,30,Female,Microprocessors/Embedded,2,4,39
+F-0008,28,Female,"Microprocessors/Embedded, Digital Signal Processing",6,1,12
+F-0009,43,Male,"Microprocessors/Embedded, Big Data, Programming",13,3,36
+F-0010,30,Female,Microprocessors/Embedded,1,3,24
+F-0011,29,Female,Programming,4,4,27
+F-0012,46,Female,"General Education, Logic, Software Design",12,2,18
+F-0013,38,Male,DSA,5,2,21
+F-0014,42,Male,"Logic, Programming",17,3,30
+F-0015,46,Male,"Software Design, Digital Signal Processing, Networking",4,3,24
+F-0016,23,Female,"Big Data, Software Design, DSA",1,5,39
+F-0017,40,Male,"Networking, Programming, AI",4,3,21
+F-0018,30,Male,Programming,2,5,45
+F-0019,28,Female,"General Education, Logic, Microprocessors/Embedded",5,2,21
+F-0020,35,Female,"Software Design, Programming",2,2,12
+F-0021,33,Male,"Software Design, Microprocessors/Embedded, General Education",1,1,12
+F-0022,43,Male,DSA,2,3,24
+F-0023,31,Female,Software Design,3,5,45
+F-0024,29,Male,Logic,3,4,36
+F-0025,44,Male,Logic,11,1,6
+F-0026,29,Male,"Programming, Big Data, Logic",2,3,21
+F-0027,37,Male,Software Design,14,1,6
+F-0028,47,Male,Logic,16,4,27
+F-0029,35,Male,"Digital Signal Processing, Programming",5,4,48
+F-0030,45,Female,Microprocessors/Embedded,10,2,18
+F-0031,46,Male,"Networking, AI, Software Design",19,4,36
+F-0032,39,Male,DSA,3,2,15
+F-0033,41,Male,"General Education, AI, DSA",14,5,48
+F-0034,44,Female,Digital Signal Processing,13,2,24
+F-0035,32,Female,"DSA, AI",8,5,42
+F-0036,39,Female,Networking,3,2,18
+F-0037,28,Female,"Digital Signal Processing, Software Design, AI",6,5,42
+F-0038,26,Male,"Software Design, Big Data, Digital Signal Processing",3,5,45
+F-0039,43,Female,"Programming, Digital Signal Processing, AI",3,4,30
+F-0040,47,Male,"Digital Signal Processing, Big Data, Programming",18,4,30
