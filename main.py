@@ -499,9 +499,9 @@ def visualize_data():
         # Get the data for the selected column
         data_column = temp_df[column]
 
-        # For scatter plots, use column2 as x-axis
-        if graph_type == "Scatter":
-            if column2 not in df.columns:
+        # For scatter and line plots, use column2 as x-axis when provided
+        if graph_type in ("Scatter", "Line"):
+            if column2 not in temp_df.columns:
                 messagebox.showerror("Error", f"Second column '{column2}' not found!")
                 return
             x_data = temp_df[column2]
@@ -531,11 +531,11 @@ def visualize_data():
                 messagebox.showerror("Error", f"Column '{column}' must be numeric for this graph type.")
                 return
 
-        # For scatter plots, also ensure x is numeric (coerce categorical to codes)
-        if graph_type == "Scatter":
+        # For scatter and line plots, also ensure x is numeric (coerce categorical to codes)
+        if graph_type in ("Scatter", "Line") and x_data is not None:
             x_data = coerce_if_categorical(x_data, column2)
             if not pd.api.types.is_numeric_dtype(x_data):
-                messagebox.showerror("Error", f"Column '{column2}' must be numeric for scatter plot.")
+                messagebox.showerror("Error", f"Column '{column2}' must be numeric for this plot type.")
                 return
 
         # Create a new figure for visualization
@@ -638,11 +638,47 @@ def visualize_data():
             ax.set_ylabel(column)
 
         elif graph_type == "Line":
-            # For line plots, use index as x
-            ax.plot(range(len(y_data)), y_data.values, color=color)
-            ax.set_title(f"Line Graph of {column}")
-            ax.set_xlabel("Index")
-            ax.set_ylabel(column)
+            # For line plots, if a second column was provided use it as x; otherwise use index
+            try:
+                if x_data is not None:
+                    # Build a small DataFrame for plotting and drop NA
+                    df_line = temp_df[[column2, column]].copy().dropna()
+
+                    # Coerce categorical columns to numeric codes when needed
+                    df_line[column2] = coerce_if_categorical(df_line[column2], column2)
+                    df_line[column] = coerce_if_categorical(df_line[column], column)
+
+                    # If x has duplicate values, aggregate by mean to produce a smooth, meaningful line
+                    if df_line[column2].duplicated().any():
+                        df_line = df_line.groupby(column2, as_index=False)[column].mean()
+                        try:
+                            if relationship_label.winfo_exists():
+                                relationship_label.config(text=f"Line plot aggregated mean {column} per {column2}")
+                        except Exception:
+                            pass
+                        # Inform the user that aggregation was applied
+                        try:
+                            messagebox.showinfo("Aggregation Applied", f"Multiple identical {column2} values found.\nDisplayed line shows mean {column} per {column2}.")
+                        except Exception:
+                            pass
+
+                    # Sort by x to avoid zig-zag lines
+                    df_line = df_line.sort_values(by=column2)
+
+                    ax.plot(df_line[column2].values, df_line[column].values, color=color, marker='o')
+                    ax.set_title(f"Line Graph of {column} vs {column2}")
+                    ax.set_xlabel(column2)
+                else:
+                    ax.plot(range(len(y_data)), y_data.values, color=color, marker='o')
+                    ax.set_title(f"Line Graph of {column}")
+                    ax.set_xlabel("Index")
+                ax.set_ylabel(column)
+            except Exception:
+                # Fallback to index-based line
+                ax.plot(range(len(y_data)), y_data.values, color=color, marker='o')
+                ax.set_title(f"Line Graph of {column}")
+                ax.set_xlabel("Index")
+                ax.set_ylabel(column)
 
         # Adjust label and title colors to match the theme
         ax.title.set_color("#F8F8F2")  # Title color
