@@ -37,13 +37,17 @@ def rank_faculty(df, subject: str, text_column: str = None, name_column: str = N
 
     # Autodetect text/bio column
     if text_column is None:
-        for cand in ("bio", "description", "profile", "details", "about", "summary", "cv"):
-            for i, c in enumerate(cols_lower):
-                if cand in c:
-                    text_column = df.columns[i]
+        # First check for FieldOfExpertise as it's likely the relevant text for faculty
+        if 'FieldOfExpertise' in df.columns:
+            text_column = 'FieldOfExpertise'
+        else:
+            for cand in ("bio", "description", "profile", "details", "about", "summary", "cv"):
+                for i, c in enumerate(cols_lower):
+                    if cand in c:
+                        text_column = df.columns[i]
+                        break
+                if text_column:
                     break
-            if text_column:
-                break
 
     if text_column is None:
         # fallback to first non-name column or first column
@@ -95,7 +99,16 @@ def rank_faculty(df, subject: str, text_column: str = None, name_column: str = N
             if not name:
                 name = str(idx)
 
-        results.append({"name": name, "score": float(score), "text": text})
+        results.append({
+            "name": name,
+            "score": float(score),
+            "text": text,
+            "index": idx,
+            "age": row.get('Age', ''),
+            "gender": row.get('Gender', ''),
+            "years_experience": row.get('YearsExperience', ''),
+            "field_of_expertise": text
+        })
 
     results = sorted(results, key=lambda x: x["score"], reverse=True)
     return results[:top_n]

@@ -5,10 +5,9 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import simpledialog
-from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from sklearn.cluster import KMeans
+
 
 # Optional improved theming
 try:
@@ -451,7 +450,8 @@ def upload_file():
             # Enable Graph Customization
             columns = df.columns.tolist()
             column_var.set(columns[0])  # Default to the first column
-            column2_var.set(columns[0])  # Default to the first column
+            # Default second column to the second available column if present
+            column2_var.set(columns[1] if len(columns) > 1 else columns[0])
             column_menu["menu"].delete(0, "end")
             column2_menu["menu"].delete(0, "end")
             for column in columns:
@@ -481,6 +481,7 @@ def upload_file():
 def visualize_data():
     try:
         column = column_var.get()
+        column2 = column2_var.get()
         graph_type = graph_type_var.get()
         color = color_var.get()
 
@@ -489,15 +490,53 @@ def visualize_data():
             messagebox.showerror("Error", f"Column '{column}' not found!")
             return
 
-        # Convert string columns to integers if needed
-        if df[column].dtype == 'object':  # If it's a string/categorical column
-            df[column] = df[column].astype("category").cat.codes
-            messagebox.showinfo("Conversion", f"Column '{column}' converted to numeric codes.")
+        # Work on a copy to avoid modifying original data
+        temp_df = df.copy()
 
-        # Check if the column is numeric
-        if not pd.api.types.is_numeric_dtype(df[column]):
-            messagebox.showerror("Error", f"Column '{column}' must be numeric for this graph type.")
-            return
+        # Normalize columns for visualization (don't modify global df)
+        temp_df = normalize_columns(temp_df, for_prediction=False)
+
+        # Get the data for the selected column
+        data_column = temp_df[column]
+
+        # For scatter plots, use column2 as x-axis
+        if graph_type == "Scatter":
+            if column2 not in df.columns:
+                messagebox.showerror("Error", f"Second column '{column2}' not found!")
+                return
+            x_data = temp_df[column2]
+            y_data = data_column
+        else:
+            x_data = None
+            y_data = data_column
+
+        # Attempt to coerce categorical columns to numeric codes when appropriate
+        def coerce_if_categorical(series, name):
+            # If already numeric, return as-is
+            if pd.api.types.is_numeric_dtype(series):
+                return series
+            # For object / categorical types, convert to category codes
+            if series.dtype == 'object' or pd.api.types.is_categorical_dtype(series):
+                try:
+                    return series.astype('category').cat.codes
+                except Exception:
+                    pass
+            # Otherwise return original
+            return series
+
+        # For plots that require numeric y-values (Histogram, Line, Scatter), coerce if needed
+        if graph_type in ("Histogram", "Line", "Scatter"):
+            y_data = coerce_if_categorical(y_data, column)
+            if not pd.api.types.is_numeric_dtype(y_data):
+                messagebox.showerror("Error", f"Column '{column}' must be numeric for this graph type.")
+                return
+
+        # For scatter plots, also ensure x is numeric (coerce categorical to codes)
+        if graph_type == "Scatter":
+            x_data = coerce_if_categorical(x_data, column2)
+            if not pd.api.types.is_numeric_dtype(x_data):
+                messagebox.showerror("Error", f"Column '{column2}' must be numeric for scatter plot.")
+                return
 
         # Create a new figure for visualization
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -508,34 +547,102 @@ def visualize_data():
 
         # Visualization logic based on the selected graph type
         if graph_type == "Histogram":
-            sns.histplot(df[column], kde=True, color=color, ax=ax)
-            ax.set_title(f"Histogram of {column}")
-            ax.set_xlabel(column)
+            # If second column selected and different, try to show distribution by the second column
+            if column2 and column2 in temp_df.columns and column2 != column:
+                # If column2 is categorical, use it as hue to split the histogram
+                if temp_df[column2].dtype == 'object' or pd.api.types.is_categorical_dtype(temp_df[column2]):
+                    try:
+                        sns.histplot(data=temp_df, x=column, hue=column2, multiple='stack', ax=ax)
+                        ax.set_title(f"Histogram of {column} by {column2}")
+                        ax.set_xlabel(column)
+                    except Exception:
+                        # Fallback to single histogram
+                        sns.histplot(y_data, kde=True, color=color, ax=ax)
+                        ax.set_title(f"Histogram of {column}")
+                        ax.set_xlabel(column)
+                else:
+                    # If both numeric, overlay two histograms for comparison
+                    try:
+                        sns.histplot(temp_df[column].dropna(), kde=True, color=color, ax=ax, stat='density', alpha=0.5, label=column)
+                        other_color = 'orange' if color != 'orange' else 'green'
+                        sns.histplot(temp_df[column2].dropna(), kde=True, color=other_color, ax=ax, stat='density', alpha=0.5, label=column2)
+                        ax.legend()
+                        ax.set_title(f"Overlayed Histograms: {column} and {column2}")
+                        ax.set_xlabel('Value')
+                    except Exception:
+                        sns.histplot(y_data, kde=True, color=color, ax=ax)
+                        ax.set_title(f"Histogram of {column}")
+                        ax.set_xlabel(column)
+            else:
+                sns.histplot(y_data, kde=True, color=color, ax=ax)
+                ax.set_title(f"Histogram of {column}")
+                ax.set_xlabel(column)
 
         elif graph_type == "Bar":
-            sns.countplot(y=df[column], color=color, ax=ax)
-            ax.set_title(f"Bar Graph of {column}")
-            ax.set_ylabel(column)
+            # If second column provided, show grouped/count or aggregated bars
+            if column2 and column2 in temp_df.columns and column2 != column:
+                # If both columns categorical -> grouped counts
+                if (temp_df[column].dtype == 'object' or pd.api.types.is_categorical_dtype(temp_df[column])) and \
+                   (temp_df[column2].dtype == 'object' or pd.api.types.is_categorical_dtype(temp_df[column2])):
+                    try:
+                        sns.countplot(x=column, hue=column2, data=temp_df, ax=ax)
+                        ax.set_title(f"Grouped counts of {column} by {column2}")
+                        ax.set_xlabel(column)
+                        ax.set_ylabel('Count')
+                    except Exception:
+                        value_counts = y_data.value_counts()
+                        sns.barplot(x=value_counts.index, y=value_counts.values, color=color, ax=ax)
+                        ax.set_title(f"Bar Graph of {column}")
+                        ax.set_xlabel(column)
+                        ax.set_ylabel("Count")
+                # If column numeric and column2 categorical -> aggregated (mean) bars per category
+                elif pd.api.types.is_numeric_dtype(temp_df[column]) and (temp_df[column2].dtype == 'object' or pd.api.types.is_categorical_dtype(temp_df[column2])):
+                    try:
+                        grouped = temp_df.groupby(column2)[column].mean().sort_values()
+                        sns.barplot(x=grouped.index.astype(str), y=grouped.values, color=color, ax=ax)
+                        ax.set_title(f"Average {column} by {column2}")
+                        ax.set_xlabel(column2)
+                        ax.set_ylabel(f"Avg {column}")
+                    except Exception:
+                        value_counts = y_data.value_counts()
+                        sns.barplot(x=value_counts.index, y=value_counts.values, color=color, ax=ax)
+                        ax.set_title(f"Bar Graph of {column}")
+                        ax.set_xlabel(column)
+                        ax.set_ylabel("Count")
+                else:
+                    # Fallback: grouped counts using crosstab and plot
+                    try:
+                        ct = pd.crosstab(temp_df[column2].astype(str), temp_df[column].astype(str))
+                        ct.plot(kind='bar', ax=ax)
+                        ax.set_title(f"Counts of {column} grouped by {column2}")
+                        ax.set_xlabel(column2)
+                        ax.set_ylabel('Count')
+                    except Exception:
+                        value_counts = y_data.value_counts()
+                        sns.barplot(x=value_counts.index, y=value_counts.values, color=color, ax=ax)
+                        ax.set_title(f"Bar Graph of {column}")
+                        ax.set_xlabel(column)
+                        ax.set_ylabel("Count")
+            else:
+                # For bar plots, count unique values (single-column)
+                value_counts = y_data.value_counts()
+                sns.barplot(x=value_counts.index, y=value_counts.values, color=color, ax=ax)
+                ax.set_title(f"Bar Graph of {column}")
+                ax.set_xlabel(column)
+                ax.set_ylabel("Count")
 
         elif graph_type == "Scatter":
-            if len(df.columns) > 1:
-                x_column = df.columns[0]
-
-                if not pd.api.types.is_numeric_dtype(df[x_column]):
-                    messagebox.showerror("Error", f"Column '{x_column}' must be numeric for scatter plot.")
-                    return
-                sns.scatterplot(data=df, x=x_column, y=column, color=color, ax=ax)
-                ax.set_title(f"Scatter Plot of {column} vs {x_column}")
-                ax.set_xlabel(x_column)
-                ax.set_ylabel(column)
-            else:
-                messagebox.showerror("Error", "Scatter plot requires at least two columns.")
-                return
+            sns.scatterplot(x=x_data, y=y_data, color=color, ax=ax)
+            ax.set_title(f"Scatter Plot of {column} vs {column2}")
+            ax.set_xlabel(column2)
+            ax.set_ylabel(column)
 
         elif graph_type == "Line":
-            df[column].plot(kind="line", color=color, ax=ax)
+            # For line plots, use index as x
+            ax.plot(range(len(y_data)), y_data.values, color=color)
             ax.set_title(f"Line Graph of {column}")
-            ax.set_xlabel(column)
+            ax.set_xlabel("Index")
+            ax.set_ylabel(column)
 
         # Adjust label and title colors to match the theme
         ax.title.set_color("#F8F8F2")  # Title color
@@ -1666,12 +1773,20 @@ def on_recommend_select(event):
         if idx < 0 or idx >= len(recommend_results):
             return
         r = recommend_results[idx]
-        bio = r.get('text') or r.get('bio') or r.get('profile') or ''
+
+        # Construct detailed information
+        details = f"Faculty ID: {r.get('name', '')}\n"
+        details += f"Age: {r.get('age', '')}\n"
+        details += f"Gender: {r.get('gender', '')}\n"
+        details += f"Years of Experience: {r.get('years_experience', '')}\n"
+        details += f"Field of Expertise: {r.get('field_of_expertise', '')}\n"
+        details += f"Relevance Score: {r.get('score', 0):.2f}"
+
         # Display in detail_text
         detail_text.config(state=tk.NORMAL)
         detail_text.delete('1.0', tk.END)
-        detail_text.insert(tk.END, bio)
-        detail_text.config(state=tk.NORMAL)
+        detail_text.insert(tk.END, details)
+        detail_text.config(state=tk.DISABLED)
         detail_text.see('1.0')
     except Exception:
         pass
@@ -1824,8 +1939,8 @@ agg_button.config(command=show_aggregation_options)
 stats_button.config(command=show_descriptive_statistics)
 clean_button.config(command=clean_null_data)
 save_button.config(command=save_visualization)
-# Remove old event binding for sort_button
-# sort_button.config(command=sort_data)
+
+
 search_button.config(command=search_data)
 top_button.config(command=show_top_values)
 least_button.config(command=show_least_values)
