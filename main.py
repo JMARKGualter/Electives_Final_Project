@@ -468,7 +468,6 @@ def upload_file():
             
             # Enable other buttons after file is uploaded
             visualize_button.config(state=tk.NORMAL)
-            analyze_button.config(state=tk.NORMAL)
             save_button.config(state=tk.NORMAL)
             # Enable Recommend Faculty button when data is loaded
             try:
@@ -1551,8 +1550,6 @@ filter_button = tk.Button(file_frame, text="Filter Data", command=filter_data, *
 filter_button.pack(fill=tk.X, pady=4, padx=6)
 
 # Populate Analysis category
-analyze_button = tk.Button(analysis_frame, text="Analyze Relationship", command=analyze_relationship, state=tk.DISABLED, **button_style)
-analyze_button.pack(fill=tk.X, pady=4, padx=6)
 visualize_button = tk.Button(analysis_frame, text="Visualize Data", command=visualize_data, state=tk.DISABLED, **button_style)
 visualize_button.pack(fill=tk.X, pady=4, padx=6)
 recommend_button = tk.Button(analysis_frame, text="Recommend", command=recommend_faculty, state=tk.DISABLED, **button_style)
@@ -1970,7 +1967,6 @@ except Exception:
 # Event Binding for Buttons
 upload_button.config(command=upload_file)
 visualize_button.config(command=visualize_data)
-analyze_button.config(command=analyze_relationship)
 agg_button.config(command=show_aggregation_options)
 stats_button.config(command=show_descriptive_statistics)
 clean_button.config(command=clean_null_data)
@@ -2030,7 +2026,7 @@ def add_hover_effect(button):
     button.bind("<Leave>", on_leave)
 
 # Apply hover effect to all buttons
-buttons = [upload_button, analyze_button, visualize_button, agg_button, stats_button,
+buttons = [upload_button, visualize_button, agg_button, stats_button,
            clean_button, save_button, top_button, least_button, search_button, predictions_button, filter_button]
 
 # Add recommend_button to hoverable buttons
