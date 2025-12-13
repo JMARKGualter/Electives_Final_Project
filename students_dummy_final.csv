@@ -1,11 +1,801 @@
-StudentID,Name,Age,Gender,Status,HasSideJob,MonthlyFamilyIncome,GPA,Major,YearOfStudy
-1,John Doe,20,Male,1,0,5000,3.5,Computer Science,2
-2,Jane Smith,21,Female,0,1,6000,3.2,Mathematics,3
-3,Alice Johnson,19,Female,1,0,4500,3.8,Physics,1
-4,Bob Brown,22,Male,0,1,5500,2.9,Chemistry,4
-5,Charlie Wilson,20,Male,1,1,4000,3.6,Biology,2
-6,Diana Davis,21,Female,0,0,7000,3.1,English,3
-7,Eve Miller,18,Female,1,0,3500,3.9,History,1
-8,Frank Garcia,23,Male,0,1,6500,2.7,Economics,4
-9,Grace Lee,20,Female,1,1,4800,3.4,Psychology,2
-10,Henry Taylor,22,Male,0,0,5200,3.0,Sociology,3
+StudentID,Age,Gender,Year_Section,Status,GWA,MonthlyFamilyIncome,HasSideJob,YearLevel
+22-13278,22,Male,4103,Enrolled,2.42,"Below 10,000",No,4th Year
+22-87397,21,Male,4104,Enrolled,2.2,"10,000 - 20,000",No,4th Year
+22-83563,26,Female,4102,Enrolled,2.48,"40,000 - 50,000",No,4th Year
+22-30926,23,Female,4104,Enrolled,2.78,"Above 60,000",No,4th Year
+22-59797,23,Female,4101,Enrolled,2.17,"Above 60,000",Yes,4th Year
+25-80284,21,Male,1101,Enrolled,2.17,"Above 60,000",No,1st Year
+24-85674,24,Male,2102,Dropped,2.8,"Below 10,000",Yes,2nd Year
+22-40512,24,Female,4101,Enrolled,2.52,"Above 60,000",No,4th Year
+24-56566,24,Female,2102,Enrolled,2.09,"50,000 - 60,000",No,2nd Year
+23-80010,21,Female,3102,Enrolled,2.44,"50,000 - 60,000",No,3rd Year
+23-99733,20,Male,3103,Enrolled,2.09,"Above 60,000",No,3rd Year
+24-18675,23,Female,2102,Enrolled,2.09,"30,000 - 40,000",No,2nd Year
+25-28726,19,Male,1103,Enrolled,2.33,"40,000 - 50,000",No,1st Year
+25-86484,20,Male,1104,Enrolled,1.58,"10,000 - 20,000",No,1st Year
+22-16175,22,Male,4101,Enrolled,1.65,"30,000 - 40,000",No,4th Year
+25-60019,21,Female,1105,Enrolled,2.05,"Above 60,000",No,1st Year
+22-99353,27,Female,4105,Enrolled,1.9,"20,000 - 30,000",Yes,4th Year
+25-30730,18,Female,1104,Enrolled,2.36,"Above 60,000",Yes,1st Year
+22-91959,27,Male,4103,Enrolled,1.93,"Above 60,000",Yes,4th Year
+22-88504,24,Male,4103,Enrolled,1.76,"20,000 - 30,000",No,4th Year
+24-41385,20,Male,2101,Enrolled,2.76,"30,000 - 40,000",No,2nd Year
+23-26828,24,Male,3104,Enrolled,2.17,"Above 60,000",No,3rd Year
+23-80686,25,Female,3102,Enrolled,2.27,"50,000 - 60,000",No,3rd Year
+25-77839,18,Male,1104,Enrolled,1.75,"20,000 - 30,000",Yes,1st Year
+23-87128,20,Male,3102,Enrolled,2.06,"Below 10,000",No,3rd Year
+22-53309,25,Male,4101,Enrolled,2.29,"30,000 - 40,000",No,4th Year
+23-84847,23,Male,3105,Enrolled,1.85,"Above 60,000",No,3rd Year
+22-22704,23,Female,4104,Enrolled,2.38,"Above 60,000",No,4th Year
+22-17944,26,Female,4104,Enrolled,2.04,"Below 10,000",No,4th Year
+23-80292,21,Female,3104,Enrolled,2.15,"30,000 - 40,000",No,3rd Year
+22-68082,21,Male,4105,Enrolled,2.04,"40,000 - 50,000",No,4th Year
+22-40982,24,Female,4102,Enrolled,2.9,"Above 60,000",No,4th Year
+22-31579,21,Female,4104,Enrolled,2.25,"Above 60,000",No,4th Year
+24-65444,24,Female,2105,Enrolled,1.88,"20,000 - 30,000",No,2nd Year
+22-85914,21,Female,4105,Enrolled,2.54,"40,000 - 50,000",No,4th Year
+23-17455,20,Male,3105,Enrolled,1.82,"Below 10,000",No,3rd Year
+23-62923,24,Male,3101,Enrolled,2.32,"Below 10,000",No,3rd Year
+25-96163,22,Female,1105,Enrolled,1.56,"10,000 - 20,000",No,1st Year
+24-41285,22,Male,2103,Enrolled,1.79,"20,000 - 30,000",No,2nd Year
+22-11220,25,Male,4104,Enrolled,2.32,"10,000 - 20,000",No,4th Year
+23-55745,21,Female,3101,Enrolled,2.51,"30,000 - 40,000",No,3rd Year
+24-90173,19,Female,2105,Enrolled,2.31,"Below 10,000",No,2nd Year
+23-44664,20,Male,3101,Enrolled,2.21,"40,000 - 50,000",No,3rd Year
+24-36685,23,Female,2103,Enrolled,2.14,"Above 60,000",Yes,2nd Year
+25-46265,18,Female,1101,Enrolled,1.73,"50,000 - 60,000",No,1st Year
+23-67912,25,Female,3105,Enrolled,2.0,"Below 10,000",Yes,3rd Year
+23-81511,22,Male,3101,Enrolled,2.09,"Below 10,000",No,3rd Year
+22-56898,26,Male,4102,Enrolled,2.62,"20,000 - 30,000",No,4th Year
+25-91351,19,Male,1102,Enrolled,2.37,"Above 60,000",Yes,1st Year
+25-13248,23,Female,1102,Enrolled,1.63,"30,000 - 40,000",No,1st Year
+23-44970,25,Male,3102,Enrolled,2.36,"Below 10,000",No,3rd Year
+23-36158,22,Female,3104,Enrolled,2.12,"Above 60,000",No,3rd Year
+22-96511,24,Female,4102,Enrolled,2.01,"Below 10,000",No,4th Year
+24-56025,22,Female,2105,Enrolled,2.46,"Below 10,000",No,2nd Year
+24-33405,21,Male,2105,Enrolled,2.61,"30,000 - 40,000",No,2nd Year
+24-67199,23,Male,2105,Enrolled,2.58,"40,000 - 50,000",Yes,2nd Year
+22-67154,25,Male,4101,Enrolled,1.96,"Below 10,000",No,4th Year
+24-91678,24,Male,2103,Enrolled,2.14,"20,000 - 30,000",No,2nd Year
+25-52753,23,Female,1104,Enrolled,2.37,"10,000 - 20,000",No,1st Year
+25-98777,22,Female,1102,Enrolled,2.59,"Above 60,000",Yes,1st Year
+24-37549,23,Female,2104,Enrolled,2.08,"30,000 - 40,000",No,2nd Year
+25-32241,20,Female,1101,Enrolled,2.19,"Above 60,000",No,1st Year
+24-39444,20,Male,2102,Dropped,1.86,"10,000 - 20,000",Yes,2nd Year
+22-69692,26,Male,4104,Enrolled,1.83,"30,000 - 40,000",No,4th Year
+23-29342,20,Female,3101,Enrolled,2.53,"Above 60,000",No,3rd Year
+25-16582,19,Male,1105,Enrolled,2.72,"Above 60,000",No,1st Year
+24-68008,24,Female,2105,Enrolled,2.22,"40,000 - 50,000",No,2nd Year
+23-72216,22,Male,3104,Enrolled,2.6,"20,000 - 30,000",No,3rd Year
+25-92149,20,Female,1102,Enrolled,2.38,"20,000 - 30,000",No,1st Year
+24-51904,19,Male,2105,Enrolled,2.02,"30,000 - 40,000",No,2nd Year
+23-18418,23,Female,3104,Enrolled,2.38,"30,000 - 40,000",Yes,3rd Year
+25-61049,23,Male,1105,Enrolled,2.79,"Above 60,000",No,1st Year
+25-10772,20,Female,1103,Enrolled,2.24,"Above 60,000",No,1st Year
+23-73993,22,Female,3102,Enrolled,2.8,"30,000 - 40,000",No,3rd Year
+25-31632,19,Male,1104,Enrolled,1.33,"40,000 - 50,000",No,1st Year
+22-21003,22,Female,4104,Enrolled,2.54,"20,000 - 30,000",No,4th Year
+23-69598,22,Female,3103,Enrolled,2.28,"Above 60,000",No,3rd Year
+22-71644,26,Male,4101,Enrolled,2.15,"20,000 - 30,000",No,4th Year
+22-95426,27,Male,4101,Enrolled,2.28,"10,000 - 20,000",No,4th Year
+23-41266,23,Male,3102,Enrolled,1.55,"10,000 - 20,000",No,3rd Year
+24-58351,23,Male,2102,Enrolled,2.17,"10,000 - 20,000",No,2nd Year
+22-85849,23,Female,4101,Enrolled,2.37,"50,000 - 60,000",Yes,4th Year
+23-23356,25,Male,3103,Enrolled,2.77,"40,000 - 50,000",No,3rd Year
+24-79827,24,Female,2104,Enrolled,2.07,"50,000 - 60,000",No,2nd Year
+25-74251,21,Female,1101,Enrolled,1.97,"Above 60,000",No,1st Year
+23-67080,25,Female,3102,Enrolled,2.07,"40,000 - 50,000",No,3rd Year
+25-67091,20,Female,1105,Enrolled,2.57,"Above 60,000",No,1st Year
+24-69087,22,Female,2102,Enrolled,2.37,"30,000 - 40,000",No,2nd Year
+23-73904,22,Female,3102,Enrolled,2.06,"40,000 - 50,000",No,3rd Year
+24-82848,23,Male,2101,Enrolled,2.43,"50,000 - 60,000",No,2nd Year
+23-72402,23,Male,3104,Enrolled,2.28,"10,000 - 20,000",No,3rd Year
+23-50135,22,Female,3105,Enrolled,2.59,"20,000 - 30,000",No,3rd Year
+24-56112,21,Female,2104,Enrolled,2.0,"Below 10,000",No,2nd Year
+24-25670,24,Male,2105,Enrolled,2.14,"50,000 - 60,000",No,2nd Year
+24-23176,21,Male,2102,Enrolled,2.11,"20,000 - 30,000",Yes,2nd Year
+23-45954,20,Female,3101,Enrolled,1.74,"10,000 - 20,000",No,3rd Year
+25-23446,22,Female,1101,Enrolled,2.35,"30,000 - 40,000",No,1st Year
+22-43092,21,Male,4104,Enrolled,2.34,"Below 10,000",No,4th Year
+22-29887,27,Female,4102,Enrolled,2.25,"10,000 - 20,000",Yes,4th Year
+25-89471,24,Male,1105,Enrolled,2.17,"30,000 - 40,000",No,1st Year
+25-48974,21,Female,1105,Enrolled,1.75,"Below 10,000",No,1st Year
+22-37235,23,Male,4102,Enrolled,2.1,"10,000 - 20,000",No,4th Year
+23-10350,23,Female,3104,Enrolled,2.13,"10,000 - 20,000",No,3rd Year
+24-69510,24,Male,2101,Enrolled,1.97,"Above 60,000",No,2nd Year
+23-65723,24,Male,3101,Enrolled,2.19,"20,000 - 30,000",No,3rd Year
+22-17816,27,Female,4102,Enrolled,2.39,"Above 60,000",No,4th Year
+24-67560,22,Female,2101,Enrolled,2.91,"20,000 - 30,000",No,2nd Year
+25-67377,22,Male,1101,Enrolled,2.31,"50,000 - 60,000",No,1st Year
+24-13390,20,Male,2101,Enrolled,2.34,"50,000 - 60,000",No,2nd Year
+22-32962,25,Female,4104,Enrolled,2.22,"10,000 - 20,000",No,4th Year
+25-93202,18,Female,1104,Enrolled,1.58,"20,000 - 30,000",No,1st Year
+22-31079,24,Female,4103,Enrolled,2.24,"30,000 - 40,000",No,4th Year
+22-69614,23,Female,4101,Enrolled,2.27,"Above 60,000",No,4th Year
+22-96200,24,Female,4105,Enrolled,3.11,"40,000 - 50,000",No,4th Year
+25-91973,24,Male,1104,Enrolled,2.18,"40,000 - 50,000",Yes,1st Year
+24-67424,19,Male,2104,Enrolled,2.36,"40,000 - 50,000",No,2nd Year
+23-50730,20,Female,3105,Enrolled,2.24,"Above 60,000",No,3rd Year
+25-25396,21,Female,1102,Enrolled,1.84,"20,000 - 30,000",No,1st Year
+25-71894,21,Male,1102,Enrolled,2.65,"40,000 - 50,000",No,1st Year
+23-19150,23,Female,3103,Enrolled,2.51,"40,000 - 50,000",No,3rd Year
+22-47072,27,Female,4103,Enrolled,2.53,"30,000 - 40,000",No,4th Year
+24-53573,23,Female,2105,Enrolled,1.93,"20,000 - 30,000",No,2nd Year
+23-84946,21,Female,3104,Dropped,2.74,"10,000 - 20,000",Yes,3rd Year
+25-60604,21,Male,1102,Enrolled,1.76,"40,000 - 50,000",No,1st Year
+22-67711,25,Female,4101,Dropped,2.46,"10,000 - 20,000",Yes,4th Year
+23-19807,22,Female,3104,Enrolled,3.02,"30,000 - 40,000",No,3rd Year
+24-98389,22,Female,2105,Enrolled,1.9,"Above 60,000",No,2nd Year
+22-90931,22,Female,4101,Enrolled,2.05,"50,000 - 60,000",Yes,4th Year
+22-93066,24,Male,4101,Enrolled,2.28,"Below 10,000",Yes,4th Year
+22-48452,23,Female,4103,Enrolled,2.07,"40,000 - 50,000",No,4th Year
+23-32280,20,Female,3102,Enrolled,1.71,"10,000 - 20,000",No,3rd Year
+23-40433,25,Female,3104,Enrolled,2.27,"50,000 - 60,000",Yes,3rd Year
+25-47700,19,Male,1105,Enrolled,1.88,"20,000 - 30,000",No,1st Year
+24-93746,24,Female,2104,Enrolled,2.42,"20,000 - 30,000",Yes,2nd Year
+25-73335,19,Female,1101,Enrolled,1.93,"40,000 - 50,000",No,1st Year
+24-12875,21,Male,2104,Enrolled,2.79,"50,000 - 60,000",No,2nd Year
+22-89482,27,Female,4104,Enrolled,1.98,"10,000 - 20,000",No,4th Year
+24-38705,23,Female,2102,Enrolled,2.14,"50,000 - 60,000",No,2nd Year
+23-92345,25,Male,3101,Enrolled,2.53,"30,000 - 40,000",Yes,3rd Year
+24-27224,21,Female,2101,Enrolled,1.82,"10,000 - 20,000",No,2nd Year
+24-79579,21,Male,2105,Enrolled,2.33,"Above 60,000",No,2nd Year
+24-54396,22,Male,2101,Enrolled,2.71,"10,000 - 20,000",No,2nd Year
+25-83048,18,Female,1103,Dropped,1.69,"10,000 - 20,000",Yes,1st Year
+24-98188,23,Female,2103,Enrolled,2.31,"20,000 - 30,000",Yes,2nd Year
+23-71797,24,Female,3101,Enrolled,2.34,"10,000 - 20,000",No,3rd Year
+25-49608,18,Male,1104,Dropped,2.52,"10,000 - 20,000",Yes,1st Year
+25-25220,19,Male,1101,Enrolled,1.82,"20,000 - 30,000",No,1st Year
+25-86983,21,Male,1102,Enrolled,1.79,"40,000 - 50,000",No,1st Year
+24-14288,20,Female,2103,Enrolled,2.43,"10,000 - 20,000",No,2nd Year
+22-99873,25,Female,4103,Enrolled,2.35,"20,000 - 30,000",Yes,4th Year
+22-69600,26,Male,4101,Enrolled,2.34,"40,000 - 50,000",No,4th Year
+22-53713,22,Male,4102,Enrolled,2.37,"Above 60,000",No,4th Year
+23-40539,21,Male,3103,Enrolled,2.01,"10,000 - 20,000",No,3rd Year
+24-32871,24,Male,2101,Enrolled,2.33,"20,000 - 30,000",No,2nd Year
+23-87182,20,Male,3103,Enrolled,2.35,"10,000 - 20,000",No,3rd Year
+22-18330,24,Female,4104,Enrolled,2.0,"Below 10,000",No,4th Year
+23-90623,25,Female,3101,Enrolled,2.9,"Below 10,000",Yes,3rd Year
+25-62640,23,Male,1104,Enrolled,2.42,"30,000 - 40,000",Yes,1st Year
+22-52219,22,Male,4105,Enrolled,1.83,"40,000 - 50,000",No,4th Year
+24-59925,23,Female,2105,Enrolled,2.48,"40,000 - 50,000",No,2nd Year
+22-95814,26,Male,4105,Enrolled,1.91,"10,000 - 20,000",No,4th Year
+25-62262,23,Male,1104,Enrolled,2.53,"20,000 - 30,000",No,1st Year
+24-30006,19,Male,2104,Enrolled,2.66,"Below 10,000",No,2nd Year
+24-27054,19,Female,2105,Enrolled,1.96,"30,000 - 40,000",No,2nd Year
+25-16743,22,Female,1103,Enrolled,2.59,"40,000 - 50,000",No,1st Year
+23-96079,21,Male,3104,Enrolled,2.39,"40,000 - 50,000",No,3rd Year
+24-85248,22,Male,2102,Enrolled,2.54,"50,000 - 60,000",No,2nd Year
+24-13794,21,Female,2102,Enrolled,2.91,"20,000 - 30,000",Yes,2nd Year
+23-84228,20,Male,3104,Enrolled,2.16,"Below 10,000",Yes,3rd Year
+23-59308,23,Female,3104,Enrolled,1.99,"20,000 - 30,000",No,3rd Year
+22-16895,22,Male,4102,Enrolled,1.94,"20,000 - 30,000",No,4th Year
+25-73656,21,Female,1105,Enrolled,1.96,"Above 60,000",No,1st Year
+24-66349,21,Female,2101,Enrolled,2.22,"20,000 - 30,000",Yes,2nd Year
+25-88554,18,Male,1101,Enrolled,2.37,"10,000 - 20,000",No,1st Year
+24-47938,19,Male,2103,Enrolled,2.35,"30,000 - 40,000",Yes,2nd Year
+25-79806,22,Female,1102,Enrolled,2.54,"Above 60,000",No,1st Year
+25-12456,18,Female,1104,Enrolled,2.25,"40,000 - 50,000",No,1st Year
+25-47947,21,Male,1101,Enrolled,2.76,"10,000 - 20,000",No,1st Year
+25-57428,21,Male,1101,Enrolled,2.16,"40,000 - 50,000",No,1st Year
+22-61873,26,Female,4103,Enrolled,3.2,"Above 60,000",Yes,4th Year
+22-79547,22,Female,4105,Enrolled,2.47,"Above 60,000",No,4th Year
+23-40968,21,Female,3101,Enrolled,1.95,"40,000 - 50,000",Yes,3rd Year
+22-33218,24,Female,4104,Enrolled,1.88,"40,000 - 50,000",No,4th Year
+24-92210,20,Female,2103,Enrolled,2.42,"30,000 - 40,000",No,2nd Year
+24-87518,21,Male,2101,Enrolled,2.17,"30,000 - 40,000",Yes,2nd Year
+24-47627,24,Male,2101,Enrolled,2.5,"40,000 - 50,000",No,2nd Year
+22-68947,26,Male,4105,Enrolled,2.42,"30,000 - 40,000",No,4th Year
+22-69050,27,Female,4101,Enrolled,2.22,"Below 10,000",No,4th Year
+23-15130,25,Female,3102,Enrolled,1.95,"40,000 - 50,000",No,3rd Year
+23-57696,22,Female,3103,Enrolled,1.72,"20,000 - 30,000",No,3rd Year
+22-92691,21,Female,4103,Enrolled,2.09,"50,000 - 60,000",No,4th Year
+24-96057,20,Female,2105,Enrolled,2.55,"50,000 - 60,000",Yes,2nd Year
+24-50662,20,Male,2104,Enrolled,2.32,"30,000 - 40,000",No,2nd Year
+24-26750,19,Female,2105,Enrolled,1.81,"Below 10,000",No,2nd Year
+23-38074,23,Male,3103,Enrolled,2.31,"10,000 - 20,000",Yes,3rd Year
+24-23256,23,Male,2105,Enrolled,2.38,"Above 60,000",No,2nd Year
+25-30218,19,Male,1102,Enrolled,1.94,"Below 10,000",No,1st Year
+23-68222,22,Female,3105,Enrolled,2.3,"10,000 - 20,000",No,3rd Year
+25-35430,23,Female,1103,Enrolled,2.27,"20,000 - 30,000",No,1st Year
+25-31241,24,Male,1102,Enrolled,1.85,"Below 10,000",No,1st Year
+24-82684,24,Male,2101,Enrolled,2.38,"Above 60,000",Yes,2nd Year
+25-77286,24,Female,1102,Enrolled,2.45,"10,000 - 20,000",No,1st Year
+24-13495,19,Female,2104,Enrolled,2.63,"10,000 - 20,000",No,2nd Year
+22-59140,21,Female,4102,Enrolled,2.62,"Above 60,000",No,4th Year
+24-29142,19,Female,2102,Enrolled,1.77,"30,000 - 40,000",No,2nd Year
+23-71487,24,Male,3104,Enrolled,1.92,"Below 10,000",No,3rd Year
+23-81932,24,Female,3105,Enrolled,2.43,"20,000 - 30,000",No,3rd Year
+22-16258,24,Female,4102,Enrolled,2.43,"Above 60,000",No,4th Year
+22-92831,25,Male,4105,Enrolled,2.43,"20,000 - 30,000",No,4th Year
+24-41531,22,Male,2105,Enrolled,3.6,"Below 10,000",No,2nd Year
+24-18870,23,Male,2105,Enrolled,2.45,"30,000 - 40,000",Yes,2nd Year
+25-58929,23,Male,1103,Enrolled,2.65,"Below 10,000",No,1st Year
+22-86271,22,Male,4103,Enrolled,2.58,"20,000 - 30,000",No,4th Year
+23-99742,25,Female,3104,Enrolled,2.48,"Above 60,000",Yes,3rd Year
+25-14847,19,Male,1103,Enrolled,2.14,"Below 10,000",No,1st Year
+24-77552,23,Female,2104,Enrolled,2.52,"Above 60,000",No,2nd Year
+24-56789,24,Female,2101,Enrolled,1.98,"Above 60,000",No,2nd Year
+25-67637,20,Male,1104,Enrolled,2.17,"30,000 - 40,000",No,1st Year
+24-20828,19,Female,2104,Enrolled,2.08,"Above 60,000",Yes,2nd Year
+24-52101,19,Female,2101,Enrolled,2.28,"20,000 - 30,000",No,2nd Year
+25-31842,20,Female,1104,Dropped,3.06,"10,000 - 20,000",Yes,1st Year
+25-45986,18,Female,1101,Enrolled,1.6,"Above 60,000",No,1st Year
+23-14081,24,Female,3102,Dropped,2.49,"Below 10,000",Yes,3rd Year
+24-57467,23,Male,2104,Enrolled,1.69,"50,000 - 60,000",No,2nd Year
+24-58760,19,Male,2104,Enrolled,2.08,"30,000 - 40,000",No,2nd Year
+24-42717,19,Male,2101,Enrolled,2.63,"30,000 - 40,000",No,2nd Year
+22-44311,26,Female,4103,Enrolled,2.27,"40,000 - 50,000",No,4th Year
+25-36237,19,Male,1101,Enrolled,1.87,"50,000 - 60,000",No,1st Year
+22-99381,26,Female,4103,Enrolled,2.0,"40,000 - 50,000",No,4th Year
+24-30644,21,Male,2102,Enrolled,2.49,"10,000 - 20,000",No,2nd Year
+23-74752,22,Female,3101,Enrolled,1.99,"40,000 - 50,000",Yes,3rd Year
+22-18617,24,Female,4103,Enrolled,2.33,"Above 60,000",No,4th Year
+22-26426,26,Male,4103,Enrolled,2.27,"50,000 - 60,000",No,4th Year
+23-82260,21,Male,3105,Enrolled,2.02,"Above 60,000",Yes,3rd Year
+22-77908,23,Male,4102,Enrolled,3.0,"50,000 - 60,000",No,4th Year
+24-20336,20,Female,2103,Enrolled,2.47,"20,000 - 30,000",No,2nd Year
+22-75873,25,Male,4102,Enrolled,1.54,"40,000 - 50,000",No,4th Year
+24-83874,19,Male,2101,Dropped,2.32,"10,000 - 20,000",Yes,2nd Year
+24-95344,23,Female,2102,Enrolled,2.02,"Below 10,000",No,2nd Year
+24-94136,22,Male,2103,Enrolled,2.55,"50,000 - 60,000",No,2nd Year
+25-19564,19,Female,1101,Enrolled,1.97,"30,000 - 40,000",No,1st Year
+23-50970,25,Female,3103,Enrolled,2.21,"10,000 - 20,000",No,3rd Year
+22-51827,24,Male,4102,Enrolled,2.43,"10,000 - 20,000",Yes,4th Year
+22-48038,27,Female,4104,Enrolled,2.55,"Above 60,000",No,4th Year
+24-85718,20,Male,2103,Enrolled,1.83,"40,000 - 50,000",No,2nd Year
+24-75191,19,Female,2101,Enrolled,2.13,"10,000 - 20,000",No,2nd Year
+24-16377,21,Female,2101,Enrolled,2.08,"Above 60,000",No,2nd Year
+25-47453,18,Male,1105,Enrolled,2.02,"20,000 - 30,000",No,1st Year
+25-57964,21,Male,1101,Enrolled,2.87,"10,000 - 20,000",No,1st Year
+24-19637,23,Female,2104,Enrolled,2.39,"20,000 - 30,000",No,2nd Year
+22-26864,24,Female,4101,Enrolled,1.81,"20,000 - 30,000",No,4th Year
+24-28909,23,Female,2102,Enrolled,2.57,"Below 10,000",Yes,2nd Year
+24-72094,22,Male,2105,Enrolled,2.99,"40,000 - 50,000",Yes,2nd Year
+24-31299,23,Female,2104,Enrolled,2.61,"40,000 - 50,000",No,2nd Year
+25-83783,21,Male,1103,Enrolled,1.72,"50,000 - 60,000",Yes,1st Year
+25-86507,24,Male,1103,Enrolled,2.08,"20,000 - 30,000",No,1st Year
+23-16731,23,Male,3105,Enrolled,2.69,"50,000 - 60,000",No,3rd Year
+25-29369,18,Male,1102,Enrolled,2.0,"30,000 - 40,000",No,1st Year
+23-64127,23,Female,3102,Enrolled,2.41,"50,000 - 60,000",No,3rd Year
+23-77984,24,Female,3102,Enrolled,2.52,"30,000 - 40,000",No,3rd Year
+24-32699,23,Female,2104,Enrolled,1.93,"50,000 - 60,000",No,2nd Year
+24-89963,20,Male,2104,Enrolled,2.23,"20,000 - 30,000",No,2nd Year
+24-47880,24,Female,2102,Enrolled,1.12,"20,000 - 30,000",No,2nd Year
+24-47721,23,Female,2101,Enrolled,1.89,"30,000 - 40,000",No,2nd Year
+23-48070,22,Male,3101,Enrolled,2.16,"30,000 - 40,000",No,3rd Year
+25-38047,24,Female,1102,Enrolled,1.81,"50,000 - 60,000",No,1st Year
+22-90698,22,Male,4105,Enrolled,2.82,"40,000 - 50,000",No,4th Year
+23-16880,23,Female,3101,Enrolled,1.75,"Below 10,000",No,3rd Year
+23-10679,21,Female,3105,Enrolled,2.1,"30,000 - 40,000",No,3rd Year
+23-47649,22,Male,3103,Enrolled,2.3,"Below 10,000",No,3rd Year
+23-80143,21,Female,3101,Enrolled,2.75,"10,000 - 20,000",No,3rd Year
+22-62034,22,Female,4104,Enrolled,1.75,"Below 10,000",No,4th Year
+22-53914,24,Female,4103,Enrolled,2.66,"10,000 - 20,000",No,4th Year
+25-45761,24,Male,1102,Enrolled,2.25,"50,000 - 60,000",No,1st Year
+24-34405,24,Female,2101,Enrolled,1.91,"40,000 - 50,000",No,2nd Year
+23-33002,25,Female,3105,Enrolled,2.41,"40,000 - 50,000",No,3rd Year
+25-97720,19,Male,1101,Enrolled,2.32,"10,000 - 20,000",Yes,1st Year
+25-40870,24,Female,1104,Enrolled,2.04,"20,000 - 30,000",No,1st Year
+22-44282,26,Male,4103,Enrolled,2.27,"Below 10,000",No,4th Year
+23-63138,25,Female,3105,Enrolled,2.12,"50,000 - 60,000",No,3rd Year
+24-58174,20,Male,2105,Enrolled,2.29,"30,000 - 40,000",Yes,2nd Year
+24-64505,22,Male,2105,Enrolled,2.48,"50,000 - 60,000",No,2nd Year
+22-78879,25,Female,4104,Enrolled,2.81,"40,000 - 50,000",Yes,4th Year
+23-85065,21,Male,3105,Enrolled,1.82,"40,000 - 50,000",No,3rd Year
+23-86434,20,Female,3104,Enrolled,3.0,"30,000 - 40,000",Yes,3rd Year
+25-69873,18,Female,1105,Enrolled,1.57,"20,000 - 30,000",No,1st Year
+25-43352,23,Male,1101,Enrolled,2.2,"Below 10,000",No,1st Year
+22-80931,21,Female,4101,Dropped,2.46,"10,000 - 20,000",Yes,4th Year
+23-94085,22,Female,3104,Enrolled,2.35,"30,000 - 40,000",No,3rd Year
+23-95660,20,Male,3103,Enrolled,2.03,"30,000 - 40,000",No,3rd Year
+23-10455,22,Female,3101,Enrolled,2.18,"40,000 - 50,000",No,3rd Year
+25-40102,21,Female,1102,Enrolled,2.08,"10,000 - 20,000",No,1st Year
+22-14222,25,Male,4104,Enrolled,2.04,"Below 10,000",Yes,4th Year
+22-68515,26,Male,4105,Enrolled,2.55,"Below 10,000",No,4th Year
+23-80747,20,Male,3102,Enrolled,2.37,"20,000 - 30,000",No,3rd Year
+24-85690,24,Female,2105,Enrolled,2.01,"10,000 - 20,000",No,2nd Year
+23-64206,22,Male,3103,Enrolled,2.56,"40,000 - 50,000",No,3rd Year
+23-92050,24,Female,3104,Dropped,2.36,"10,000 - 20,000",Yes,3rd Year
+25-78742,23,Female,1103,Enrolled,2.53,"20,000 - 30,000",No,1st Year
+25-41584,20,Male,1102,Enrolled,2.47,"Below 10,000",No,1st Year
+25-83044,19,Female,1105,Enrolled,1.96,"10,000 - 20,000",No,1st Year
+22-68954,21,Male,4103,Enrolled,2.05,"30,000 - 40,000",No,4th Year
+22-19539,27,Male,4102,Enrolled,2.51,"Above 60,000",No,4th Year
+24-12009,20,Male,2102,Enrolled,2.46,"Above 60,000",No,2nd Year
+23-89220,23,Male,3102,Enrolled,2.24,"Above 60,000",No,3rd Year
+25-79946,20,Female,1103,Enrolled,2.29,"30,000 - 40,000",No,1st Year
+25-51973,20,Female,1102,Enrolled,2.7,"40,000 - 50,000",No,1st Year
+23-12125,24,Female,3103,Enrolled,2.04,"10,000 - 20,000",No,3rd Year
+25-84683,21,Female,1102,Enrolled,2.44,"Above 60,000",No,1st Year
+25-70401,23,Female,1102,Enrolled,2.18,"50,000 - 60,000",No,1st Year
+23-81058,24,Male,3101,Enrolled,2.17,"Below 10,000",No,3rd Year
+22-10836,22,Male,4104,Enrolled,2.63,"10,000 - 20,000",Yes,4th Year
+25-58916,22,Female,1101,Enrolled,2.54,"Below 10,000",Yes,1st Year
+25-11553,22,Female,1101,Enrolled,2.53,"20,000 - 30,000",Yes,1st Year
+25-33496,18,Male,1101,Enrolled,2.71,"40,000 - 50,000",No,1st Year
+24-45038,19,Female,2104,Enrolled,2.26,"30,000 - 40,000",No,2nd Year
+23-49318,25,Male,3101,Enrolled,2.49,"30,000 - 40,000",No,3rd Year
+25-17355,23,Male,1101,Enrolled,2.14,"Above 60,000",No,1st Year
+24-84167,23,Male,2101,Enrolled,2.36,"Above 60,000",No,2nd Year
+25-45532,18,Female,1101,Enrolled,2.2,"40,000 - 50,000",No,1st Year
+23-51220,21,Male,3101,Enrolled,2.28,"50,000 - 60,000",No,3rd Year
+22-49226,25,Male,4102,Enrolled,2.46,"Above 60,000",No,4th Year
+24-60311,24,Male,2102,Enrolled,1.96,"20,000 - 30,000",Yes,2nd Year
+25-40427,20,Female,1101,Enrolled,2.98,"20,000 - 30,000",Yes,1st Year
+24-69054,20,Female,2104,Enrolled,1.9,"30,000 - 40,000",No,2nd Year
+25-21232,20,Male,1105,Enrolled,1.83,"Below 10,000",No,1st Year
+25-93086,23,Female,1102,Enrolled,2.66,"Below 10,000",Yes,1st Year
+24-68292,21,Male,2103,Enrolled,2.53,"10,000 - 20,000",No,2nd Year
+25-23538,18,Female,1101,Enrolled,2.47,"40,000 - 50,000",No,1st Year
+24-60493,21,Female,2101,Enrolled,2.47,"Below 10,000",No,2nd Year
+23-84967,21,Female,3105,Enrolled,2.25,"20,000 - 30,000",No,3rd Year
+25-29127,19,Female,1101,Enrolled,1.94,"20,000 - 30,000",No,1st Year
+22-57333,22,Female,4103,Enrolled,2.28,"10,000 - 20,000",No,4th Year
+23-49932,23,Female,3101,Enrolled,2.01,"30,000 - 40,000",No,3rd Year
+24-67700,22,Male,2103,Enrolled,2.59,"40,000 - 50,000",No,2nd Year
+23-72784,21,Female,3103,Enrolled,2.2,"20,000 - 30,000",No,3rd Year
+25-85481,20,Female,1102,Enrolled,1.96,"Above 60,000",No,1st Year
+22-83905,25,Male,4102,Enrolled,2.14,"40,000 - 50,000",Yes,4th Year
+25-37479,24,Female,1104,Enrolled,2.39,"Below 10,000",No,1st Year
+25-98208,19,Female,1104,Enrolled,2.05,"50,000 - 60,000",Yes,1st Year
+25-59412,21,Female,1101,Enrolled,1.96,"40,000 - 50,000",No,1st Year
+25-81256,24,Female,1101,Enrolled,2.34,"Above 60,000",No,1st Year
+22-24335,26,Female,4102,Enrolled,2.34,"40,000 - 50,000",Yes,4th Year
+25-53463,18,Male,1104,Enrolled,2.07,"10,000 - 20,000",No,1st Year
+23-68429,23,Female,3103,Enrolled,2.09,"40,000 - 50,000",No,3rd Year
+23-55215,23,Male,3101,Enrolled,2.33,"Below 10,000",Yes,3rd Year
+23-55656,22,Female,3103,Enrolled,1.74,"40,000 - 50,000",No,3rd Year
+25-22795,23,Female,1104,Enrolled,1.76,"20,000 - 30,000",Yes,1st Year
+22-12960,26,Male,4103,Enrolled,2.0,"10,000 - 20,000",No,4th Year
+23-77632,24,Male,3102,Enrolled,2.18,"30,000 - 40,000",No,3rd Year
+23-63090,21,Female,3102,Enrolled,2.36,"50,000 - 60,000",No,3rd Year
+23-68926,23,Female,3105,Dropped,2.77,"Below 10,000",Yes,3rd Year
+22-85674,27,Male,4101,Enrolled,2.55,"10,000 - 20,000",No,4th Year
+24-97910,23,Female,2104,Enrolled,2.19,"40,000 - 50,000",No,2nd Year
+22-55603,27,Female,4103,Enrolled,2.24,"Above 60,000",No,4th Year
+24-90541,19,Male,2105,Enrolled,1.9,"10,000 - 20,000",No,2nd Year
+23-58929,24,Female,3102,Enrolled,2.24,"10,000 - 20,000",No,3rd Year
+25-34347,23,Male,1104,Enrolled,2.15,"30,000 - 40,000",No,1st Year
+23-51232,24,Male,3104,Enrolled,2.36,"Below 10,000",No,3rd Year
+23-60324,24,Female,3105,Enrolled,1.96,"30,000 - 40,000",No,3rd Year
+25-74054,18,Male,1102,Enrolled,2.43,"10,000 - 20,000",No,1st Year
+24-39470,21,Male,2105,Enrolled,2.79,"40,000 - 50,000",No,2nd Year
+25-82053,18,Male,1105,Enrolled,2.21,"40,000 - 50,000",No,1st Year
+24-81046,24,Female,2101,Enrolled,2.39,"30,000 - 40,000",Yes,2nd Year
+23-49021,23,Female,3101,Enrolled,2.49,"Above 60,000",Yes,3rd Year
+22-41056,27,Female,4102,Enrolled,2.11,"40,000 - 50,000",No,4th Year
+23-90760,21,Male,3102,Enrolled,2.33,"40,000 - 50,000",No,3rd Year
+24-88231,20,Female,2105,Enrolled,2.25,"20,000 - 30,000",No,2nd Year
+24-77425,20,Female,2101,Enrolled,2.28,"20,000 - 30,000",No,2nd Year
+23-27392,21,Female,3102,Enrolled,1.98,"Above 60,000",No,3rd Year
+25-74154,22,Female,1102,Enrolled,2.26,"30,000 - 40,000",No,1st Year
+22-62802,26,Female,4105,Enrolled,2.42,"20,000 - 30,000",No,4th Year
+25-52898,18,Male,1105,Enrolled,2.76,"30,000 - 40,000",No,1st Year
+24-18300,22,Male,2105,Enrolled,2.59,"Above 60,000",No,2nd Year
+24-52318,21,Male,2103,Enrolled,3.0,"30,000 - 40,000",No,2nd Year
+22-16021,26,Female,4101,Dropped,1.98,"Below 10,000",Yes,4th Year
+25-10088,19,Male,1104,Enrolled,2.56,"20,000 - 30,000",Yes,1st Year
+24-22234,21,Male,2103,Enrolled,2.31,"50,000 - 60,000",Yes,2nd Year
+25-91999,23,Male,1103,Enrolled,3.02,"Below 10,000",No,1st Year
+22-37973,21,Male,4104,Enrolled,1.97,"40,000 - 50,000",No,4th Year
+22-11056,27,Male,4103,Enrolled,1.96,"30,000 - 40,000",No,4th Year
+25-19283,21,Male,1102,Enrolled,2.04,"Below 10,000",Yes,1st Year
+24-49223,22,Male,2102,Enrolled,1.51,"50,000 - 60,000",Yes,2nd Year
+22-89995,24,Female,4102,Enrolled,2.07,"50,000 - 60,000",No,4th Year
+25-90750,24,Male,1104,Enrolled,1.98,"Below 10,000",Yes,1st Year
+22-87276,23,Female,4104,Enrolled,2.3,"10,000 - 20,000",No,4th Year
+22-42527,25,Female,4105,Enrolled,2.37,"50,000 - 60,000",Yes,4th Year
+24-36928,23,Male,2105,Enrolled,2.91,"20,000 - 30,000",No,2nd Year
+23-74865,20,Male,3104,Enrolled,2.58,"40,000 - 50,000",Yes,3rd Year
+22-57329,22,Female,4103,Enrolled,2.05,"40,000 - 50,000",No,4th Year
+23-71736,20,Male,3101,Dropped,1.94,"10,000 - 20,000",Yes,3rd Year
+22-62163,23,Female,4105,Enrolled,2.42,"30,000 - 40,000",Yes,4th Year
+23-46368,22,Male,3101,Enrolled,1.79,"10,000 - 20,000",No,3rd Year
+23-80305,23,Male,3103,Enrolled,2.89,"30,000 - 40,000",No,3rd Year
+23-17589,20,Female,3102,Enrolled,2.66,"40,000 - 50,000",No,3rd Year
+24-97304,19,Male,2102,Enrolled,2.09,"50,000 - 60,000",Yes,2nd Year
+25-55443,22,Female,1105,Enrolled,1.65,"10,000 - 20,000",No,1st Year
+24-25473,21,Female,2101,Enrolled,2.72,"Below 10,000",No,2nd Year
+22-75031,25,Female,4104,Enrolled,2.21,"Above 60,000",No,4th Year
+24-30618,19,Male,2103,Enrolled,2.68,"40,000 - 50,000",Yes,2nd Year
+22-42053,24,Female,4101,Enrolled,1.69,"10,000 - 20,000",Yes,4th Year
+22-82465,22,Female,4104,Enrolled,2.04,"50,000 - 60,000",No,4th Year
+22-84912,21,Male,4103,Enrolled,2.25,"Above 60,000",No,4th Year
+22-62550,24,Female,4101,Enrolled,2.27,"20,000 - 30,000",No,4th Year
+25-11044,19,Female,1103,Enrolled,2.09,"20,000 - 30,000",No,1st Year
+23-70807,24,Female,3103,Enrolled,2.47,"Above 60,000",Yes,3rd Year
+23-29735,23,Male,3101,Enrolled,1.88,"20,000 - 30,000",No,3rd Year
+22-53911,27,Female,4101,Enrolled,2.2,"50,000 - 60,000",No,4th Year
+23-79443,23,Female,3102,Enrolled,2.29,"10,000 - 20,000",No,3rd Year
+22-15754,27,Female,4102,Enrolled,2.43,"20,000 - 30,000",No,4th Year
+22-86122,25,Male,4101,Enrolled,2.5,"30,000 - 40,000",Yes,4th Year
+22-67014,22,Female,4102,Enrolled,1.86,"20,000 - 30,000",No,4th Year
+25-52762,21,Female,1103,Enrolled,1.71,"10,000 - 20,000",Yes,1st Year
+22-30369,22,Female,4101,Enrolled,2.7,"30,000 - 40,000",Yes,4th Year
+24-37215,21,Female,2104,Enrolled,2.37,"Below 10,000",Yes,2nd Year
+24-89076,20,Female,2101,Enrolled,1.99,"50,000 - 60,000",No,2nd Year
+24-61936,19,Female,2105,Enrolled,2.79,"10,000 - 20,000",Yes,2nd Year
+25-69270,23,Male,1105,Enrolled,2.29,"Below 10,000",No,1st Year
+23-25919,20,Male,3101,Enrolled,2.66,"Above 60,000",No,3rd Year
+22-86326,23,Male,4105,Dropped,2.27,"Below 10,000",Yes,4th Year
+25-26880,24,Female,1101,Enrolled,2.97,"30,000 - 40,000",Yes,1st Year
+25-61773,18,Female,1104,Enrolled,2.86,"10,000 - 20,000",No,1st Year
+23-46042,23,Male,3103,Dropped,2.16,"10,000 - 20,000",Yes,3rd Year
+24-75390,23,Female,2104,Enrolled,2.59,"20,000 - 30,000",No,2nd Year
+25-36143,19,Male,1105,Enrolled,2.48,"Above 60,000",No,1st Year
+25-81371,20,Female,1104,Enrolled,2.73,"10,000 - 20,000",Yes,1st Year
+23-13840,20,Female,3103,Enrolled,1.91,"Above 60,000",No,3rd Year
+23-30922,21,Male,3101,Enrolled,2.49,"Above 60,000",No,3rd Year
+22-38758,27,Female,4105,Enrolled,2.62,"Above 60,000",No,4th Year
+23-33081,24,Female,3102,Enrolled,1.63,"50,000 - 60,000",No,3rd Year
+22-56095,25,Male,4105,Enrolled,1.84,"10,000 - 20,000",No,4th Year
+25-81057,19,Female,1103,Dropped,1.54,"Below 10,000",Yes,1st Year
+23-12612,23,Male,3105,Enrolled,2.16,"40,000 - 50,000",No,3rd Year
+23-54663,22,Male,3102,Dropped,2.5,"Below 10,000",Yes,3rd Year
+23-24538,22,Male,3105,Enrolled,2.78,"50,000 - 60,000",No,3rd Year
+22-54113,23,Male,4103,Enrolled,2.28,"50,000 - 60,000",No,4th Year
+25-95089,19,Female,1103,Enrolled,2.82,"40,000 - 50,000",No,1st Year
+25-50215,19,Male,1103,Enrolled,1.77,"50,000 - 60,000",No,1st Year
+25-84381,19,Female,1101,Enrolled,1.65,"40,000 - 50,000",No,1st Year
+22-75035,23,Male,4102,Enrolled,2.23,"20,000 - 30,000",Yes,4th Year
+22-97821,24,Male,4103,Enrolled,2.38,"10,000 - 20,000",No,4th Year
+24-43640,24,Male,2101,Dropped,2.24,"Below 10,000",Yes,2nd Year
+23-64266,23,Female,3104,Enrolled,1.53,"Below 10,000",No,3rd Year
+23-31319,20,Male,3104,Enrolled,2.22,"20,000 - 30,000",No,3rd Year
+22-19725,22,Female,4103,Enrolled,1.79,"Below 10,000",No,4th Year
+22-54295,25,Female,4105,Enrolled,2.48,"30,000 - 40,000",No,4th Year
+23-89602,21,Male,3104,Enrolled,2.38,"10,000 - 20,000",No,3rd Year
+25-82628,20,Female,1105,Enrolled,1.92,"Below 10,000",Yes,1st Year
+25-30131,20,Male,1101,Enrolled,2.07,"20,000 - 30,000",No,1st Year
+25-36171,18,Male,1101,Enrolled,1.88,"20,000 - 30,000",No,1st Year
+25-25139,24,Female,1103,Enrolled,2.23,"50,000 - 60,000",No,1st Year
+25-34232,21,Female,1103,Enrolled,2.58,"Below 10,000",No,1st Year
+25-44524,24,Female,1102,Enrolled,1.9,"10,000 - 20,000",No,1st Year
+22-21233,27,Female,4103,Enrolled,2.43,"40,000 - 50,000",No,4th Year
+22-60738,24,Female,4105,Enrolled,2.06,"10,000 - 20,000",No,4th Year
+22-61747,25,Male,4101,Enrolled,1.97,"Above 60,000",No,4th Year
+23-37772,21,Male,3102,Enrolled,2.21,"50,000 - 60,000",No,3rd Year
+23-87994,22,Male,3103,Enrolled,1.89,"40,000 - 50,000",No,3rd Year
+24-46202,22,Male,2105,Enrolled,2.06,"40,000 - 50,000",No,2nd Year
+25-24748,19,Male,1104,Enrolled,1.83,"40,000 - 50,000",No,1st Year
+22-23845,27,Male,4105,Enrolled,2.94,"Above 60,000",No,4th Year
+24-63856,22,Female,2103,Enrolled,2.26,"30,000 - 40,000",Yes,2nd Year
+24-62818,23,Female,2102,Dropped,2.01,"Below 10,000",Yes,2nd Year
+22-72287,23,Male,4103,Enrolled,2.32,"Above 60,000",No,4th Year
+24-74437,20,Male,2101,Enrolled,2.21,"50,000 - 60,000",No,2nd Year
+24-45313,23,Male,2104,Enrolled,2.17,"10,000 - 20,000",No,2nd Year
+25-73499,24,Female,1105,Enrolled,2.46,"40,000 - 50,000",No,1st Year
+22-50779,24,Male,4105,Enrolled,2.52,"40,000 - 50,000",No,4th Year
+22-32772,27,Male,4102,Enrolled,2.06,"10,000 - 20,000",Yes,4th Year
+22-57235,23,Female,4102,Enrolled,2.05,"40,000 - 50,000",No,4th Year
+22-99282,22,Female,4101,Enrolled,2.15,"30,000 - 40,000",Yes,4th Year
+25-86923,20,Female,1105,Enrolled,1.44,"20,000 - 30,000",No,1st Year
+22-47364,24,Male,4101,Enrolled,1.72,"40,000 - 50,000",No,4th Year
+23-39012,25,Male,3102,Enrolled,2.73,"30,000 - 40,000",No,3rd Year
+22-72140,26,Male,4102,Enrolled,2.83,"Below 10,000",No,4th Year
+24-94245,22,Female,2103,Enrolled,2.16,"30,000 - 40,000",No,2nd Year
+25-49602,24,Female,1105,Enrolled,2.45,"Below 10,000",No,1st Year
+24-83591,23,Female,2105,Enrolled,2.36,"Below 10,000",No,2nd Year
+24-46239,21,Female,2103,Enrolled,3.33,"50,000 - 60,000",No,2nd Year
+23-77802,20,Female,3102,Enrolled,2.64,"50,000 - 60,000",Yes,3rd Year
+22-95904,23,Female,4104,Enrolled,2.21,"30,000 - 40,000",No,4th Year
+22-86418,27,Male,4105,Enrolled,1.92,"50,000 - 60,000",No,4th Year
+25-98063,22,Female,1103,Enrolled,1.69,"Above 60,000",No,1st Year
+23-48506,23,Male,3101,Enrolled,2.32,"50,000 - 60,000",No,3rd Year
+23-99091,25,Male,3103,Enrolled,1.99,"10,000 - 20,000",No,3rd Year
+24-65112,21,Female,2103,Enrolled,1.75,"30,000 - 40,000",No,2nd Year
+25-17035,22,Male,1105,Enrolled,2.02,"10,000 - 20,000",No,1st Year
+25-79446,21,Male,1103,Enrolled,1.87,"10,000 - 20,000",Yes,1st Year
+23-54914,24,Female,3104,Enrolled,2.84,"Above 60,000",No,3rd Year
+22-73908,26,Male,4103,Enrolled,2.56,"Below 10,000",Yes,4th Year
+24-37444,23,Male,2102,Enrolled,2.25,"Above 60,000",No,2nd Year
+23-90541,25,Female,3104,Enrolled,2.77,"30,000 - 40,000",No,3rd Year
+22-79963,26,Female,4102,Enrolled,2.28,"20,000 - 30,000",No,4th Year
+23-12348,25,Male,3101,Enrolled,1.95,"20,000 - 30,000",No,3rd Year
+22-60272,25,Female,4105,Enrolled,2.78,"Above 60,000",Yes,4th Year
+24-69759,23,Female,2105,Enrolled,2.44,"50,000 - 60,000",No,2nd Year
+24-74248,20,Male,2103,Enrolled,1.89,"Above 60,000",No,2nd Year
+23-39402,21,Male,3102,Enrolled,2.18,"10,000 - 20,000",Yes,3rd Year
+22-59177,27,Male,4103,Enrolled,1.94,"Below 10,000",No,4th Year
+22-16322,24,Female,4101,Enrolled,1.77,"40,000 - 50,000",No,4th Year
+23-36934,22,Female,3101,Enrolled,2.57,"50,000 - 60,000",No,3rd Year
+23-64896,24,Male,3101,Enrolled,2.92,"Above 60,000",Yes,3rd Year
+23-89823,22,Male,3102,Enrolled,1.76,"30,000 - 40,000",No,3rd Year
+22-81845,22,Female,4104,Enrolled,2.45,"Below 10,000",Yes,4th Year
+22-24474,26,Female,4105,Enrolled,2.02,"Below 10,000",No,4th Year
+22-23276,26,Male,4103,Enrolled,2.08,"20,000 - 30,000",No,4th Year
+22-23082,27,Male,4102,Enrolled,2.04,"20,000 - 30,000",No,4th Year
+24-65836,19,Male,2101,Dropped,1.95,"10,000 - 20,000",Yes,2nd Year
+23-53078,23,Female,3103,Enrolled,2.27,"Below 10,000",No,3rd Year
+24-33969,22,Female,2101,Enrolled,1.96,"20,000 - 30,000",No,2nd Year
+25-65278,18,Male,1102,Enrolled,2.34,"Below 10,000",No,1st Year
+23-23593,24,Female,3104,Enrolled,2.23,"50,000 - 60,000",No,3rd Year
+25-57002,18,Male,1105,Enrolled,2.17,"30,000 - 40,000",Yes,1st Year
+25-67761,18,Female,1101,Enrolled,1.93,"Below 10,000",No,1st Year
+23-97797,24,Male,3103,Enrolled,2.05,"50,000 - 60,000",No,3rd Year
+24-96993,20,Male,2104,Dropped,2.51,"Below 10,000",Yes,2nd Year
+25-74990,18,Female,1102,Enrolled,2.43,"20,000 - 30,000",No,1st Year
+22-76444,25,Female,4102,Enrolled,1.91,"10,000 - 20,000",Yes,4th Year
+25-85108,18,Female,1104,Enrolled,2.28,"Below 10,000",No,1st Year
+22-23453,24,Male,4104,Enrolled,2.51,"Below 10,000",No,4th Year
+24-76628,20,Female,2105,Enrolled,1.67,"20,000 - 30,000",No,2nd Year
+23-69566,24,Female,3103,Enrolled,2.44,"20,000 - 30,000",No,3rd Year
+22-22771,21,Female,4102,Enrolled,2.02,"50,000 - 60,000",No,4th Year
+24-81786,21,Male,2105,Dropped,2.45,"Below 10,000",Yes,2nd Year
+25-24019,22,Male,1103,Enrolled,1.98,"Above 60,000",No,1st Year
+25-34979,18,Female,1103,Dropped,1.62,"10,000 - 20,000",Yes,1st Year
+22-69048,26,Male,4104,Enrolled,1.68,"Below 10,000",No,4th Year
+22-82512,27,Female,4104,Enrolled,2.27,"Above 60,000",No,4th Year
+23-85832,25,Male,3102,Enrolled,2.34,"50,000 - 60,000",No,3rd Year
+24-76074,22,Male,2104,Enrolled,1.93,"20,000 - 30,000",No,2nd Year
+25-27481,21,Female,1102,Enrolled,2.47,"40,000 - 50,000",No,1st Year
+23-36330,24,Female,3102,Enrolled,1.67,"50,000 - 60,000",Yes,3rd Year
+23-76046,25,Female,3105,Enrolled,2.23,"Above 60,000",No,3rd Year
+25-86389,23,Female,1105,Enrolled,1.83,"Above 60,000",No,1st Year
+25-11673,18,Male,1105,Enrolled,2.02,"Below 10,000",No,1st Year
+23-44993,22,Female,3102,Enrolled,2.27,"Below 10,000",No,3rd Year
+24-36738,19,Female,2105,Enrolled,1.95,"Below 10,000",No,2nd Year
+23-94819,23,Male,3105,Enrolled,2.12,"Above 60,000",No,3rd Year
+24-97096,22,Female,2101,Enrolled,2.6,"Above 60,000",No,2nd Year
+24-82368,19,Female,2101,Enrolled,2.05,"Above 60,000",No,2nd Year
+25-39563,24,Male,1103,Enrolled,2.54,"10,000 - 20,000",No,1st Year
+23-99477,21,Male,3101,Enrolled,1.85,"Below 10,000",No,3rd Year
+25-46583,20,Male,1105,Enrolled,2.44,"Above 60,000",No,1st Year
+24-71122,19,Male,2102,Enrolled,2.75,"40,000 - 50,000",Yes,2nd Year
+24-74297,23,Female,2105,Enrolled,1.38,"50,000 - 60,000",No,2nd Year
+23-34100,20,Male,3105,Enrolled,1.97,"40,000 - 50,000",No,3rd Year
+24-38992,24,Female,2102,Enrolled,2.45,"20,000 - 30,000",No,2nd Year
+25-83575,18,Female,1101,Enrolled,2.18,"50,000 - 60,000",No,1st Year
+23-15226,23,Male,3103,Enrolled,2.38,"40,000 - 50,000",No,3rd Year
+22-77746,25,Female,4103,Enrolled,2.04,"20,000 - 30,000",No,4th Year
+23-51984,20,Male,3105,Enrolled,2.28,"Above 60,000",No,3rd Year
+22-92173,22,Male,4101,Enrolled,2.2,"30,000 - 40,000",No,4th Year
+23-80484,25,Male,3104,Enrolled,2.66,"10,000 - 20,000",Yes,3rd Year
+24-14965,19,Male,2101,Enrolled,2.34,"20,000 - 30,000",No,2nd Year
+23-43901,23,Female,3104,Enrolled,2.37,"30,000 - 40,000",No,3rd Year
+25-98250,22,Male,1101,Enrolled,2.11,"40,000 - 50,000",Yes,1st Year
+22-19514,25,Male,4103,Enrolled,2.08,"50,000 - 60,000",No,4th Year
+22-46899,24,Female,4104,Enrolled,2.1,"Below 10,000",No,4th Year
+23-27875,24,Female,3104,Enrolled,2.39,"10,000 - 20,000",No,3rd Year
+24-11461,23,Male,2105,Enrolled,2.1,"Below 10,000",No,2nd Year
+25-80405,18,Female,1105,Enrolled,2.35,"50,000 - 60,000",No,1st Year
+24-37752,24,Male,2104,Enrolled,2.98,"10,000 - 20,000",No,2nd Year
+24-35470,20,Male,2101,Enrolled,2.55,"40,000 - 50,000",No,2nd Year
+22-48096,23,Male,4101,Enrolled,2.14,"40,000 - 50,000",No,4th Year
+24-56810,24,Male,2102,Enrolled,2.67,"40,000 - 50,000",Yes,2nd Year
+23-51652,23,Female,3104,Enrolled,2.11,"20,000 - 30,000",No,3rd Year
+23-84128,22,Female,3105,Enrolled,1.54,"10,000 - 20,000",Yes,3rd Year
+23-39035,22,Female,3104,Enrolled,1.9,"50,000 - 60,000",No,3rd Year
+25-70666,20,Female,1104,Enrolled,1.6,"Below 10,000",Yes,1st Year
+22-46780,25,Male,4102,Enrolled,2.13,"50,000 - 60,000",Yes,4th Year
+22-12441,26,Male,4105,Enrolled,2.26,"40,000 - 50,000",No,4th Year
+23-14804,22,Female,3105,Enrolled,2.84,"10,000 - 20,000",No,3rd Year
+23-87280,21,Female,3103,Enrolled,2.36,"Below 10,000",No,3rd Year
+22-96858,27,Male,4102,Enrolled,2.17,"10,000 - 20,000",No,4th Year
+23-84233,25,Male,3105,Enrolled,2.54,"30,000 - 40,000",No,3rd Year
+22-38681,22,Male,4104,Enrolled,1.48,"10,000 - 20,000",Yes,4th Year
+23-77880,23,Female,3103,Enrolled,2.33,"Below 10,000",Yes,3rd Year
+24-23529,24,Female,2105,Enrolled,2.52,"20,000 - 30,000",No,2nd Year
+23-59369,22,Male,3104,Enrolled,1.73,"30,000 - 40,000",No,3rd Year
+23-77681,22,Female,3104,Enrolled,2.65,"30,000 - 40,000",No,3rd Year
+22-75776,24,Male,4102,Enrolled,2.37,"40,000 - 50,000",No,4th Year
+23-29692,21,Female,3102,Enrolled,2.1,"Above 60,000",Yes,3rd Year
+23-64344,25,Male,3103,Enrolled,2.47,"30,000 - 40,000",No,3rd Year
+23-94837,20,Male,3104,Dropped,3.04,"10,000 - 20,000",Yes,3rd Year
+23-92515,20,Male,3105,Enrolled,2.31,"20,000 - 30,000",No,3rd Year
+25-88558,23,Male,1105,Enrolled,2.34,"50,000 - 60,000",No,1st Year
+24-21239,22,Female,2102,Enrolled,2.09,"10,000 - 20,000",No,2nd Year
+25-88753,24,Male,1102,Enrolled,1.95,"40,000 - 50,000",No,1st Year
+24-69437,23,Male,2105,Enrolled,2.54,"30,000 - 40,000",Yes,2nd Year
+22-36522,27,Female,4105,Enrolled,1.95,"40,000 - 50,000",Yes,4th Year
+25-90576,18,Male,1105,Enrolled,2.28,"50,000 - 60,000",Yes,1st Year
+22-98940,25,Female,4104,Enrolled,2.08,"Below 10,000",No,4th Year
+25-40079,24,Female,1104,Enrolled,2.42,"Above 60,000",No,1st Year
+22-65769,23,Female,4102,Enrolled,2.37,"Above 60,000",Yes,4th Year
+25-43791,18,Male,1102,Enrolled,2.61,"Below 10,000",No,1st Year
+25-95792,23,Female,1102,Enrolled,2.07,"Below 10,000",Yes,1st Year
+24-44249,22,Female,2105,Enrolled,2.16,"50,000 - 60,000",No,2nd Year
+23-64162,24,Female,3105,Enrolled,1.91,"40,000 - 50,000",No,3rd Year
+24-50193,21,Female,2105,Enrolled,2.09,"Above 60,000",No,2nd Year
+22-40116,27,Male,4104,Enrolled,2.38,"40,000 - 50,000",No,4th Year
+24-82165,24,Male,2105,Enrolled,2.51,"50,000 - 60,000",Yes,2nd Year
+22-29048,25,Female,4104,Enrolled,1.93,"20,000 - 30,000",No,4th Year
+22-89826,26,Female,4101,Enrolled,2.55,"30,000 - 40,000",No,4th Year
+24-88311,20,Female,2101,Enrolled,2.72,"10,000 - 20,000",No,2nd Year
+24-35525,23,Male,2101,Enrolled,2.39,"50,000 - 60,000",Yes,2nd Year
+23-95854,21,Male,3101,Enrolled,2.91,"Above 60,000",No,3rd Year
+25-63143,19,Male,1105,Enrolled,1.98,"Below 10,000",No,1st Year
+24-83284,21,Female,2105,Enrolled,1.81,"20,000 - 30,000",No,2nd Year
+23-69606,24,Male,3104,Enrolled,1.63,"30,000 - 40,000",No,3rd Year
+22-75951,23,Male,4103,Enrolled,2.77,"20,000 - 30,000",No,4th Year
+24-68034,23,Female,2104,Enrolled,2.48,"Above 60,000",No,2nd Year
+25-99337,22,Male,1104,Enrolled,2.23,"20,000 - 30,000",Yes,1st Year
+23-98724,22,Female,3102,Enrolled,2.35,"40,000 - 50,000",No,3rd Year
+24-42539,19,Female,2103,Enrolled,1.86,"Above 60,000",No,2nd Year
+23-72463,22,Male,3103,Enrolled,3.11,"20,000 - 30,000",Yes,3rd Year
+23-75404,21,Male,3102,Enrolled,2.3,"10,000 - 20,000",No,3rd Year
+23-91080,21,Male,3103,Enrolled,2.29,"Below 10,000",No,3rd Year
+25-90455,24,Male,1101,Enrolled,2.5,"20,000 - 30,000",No,1st Year
+25-85303,21,Male,1103,Enrolled,2.42,"40,000 - 50,000",No,1st Year
+23-85584,20,Female,3102,Enrolled,2.33,"40,000 - 50,000",Yes,3rd Year
+24-61605,22,Male,2102,Enrolled,1.97,"30,000 - 40,000",No,2nd Year
+22-11549,24,Male,4102,Enrolled,2.42,"40,000 - 50,000",No,4th Year
+23-81901,21,Female,3103,Enrolled,2.91,"40,000 - 50,000",No,3rd Year
+23-75374,21,Female,3104,Enrolled,2.72,"20,000 - 30,000",No,3rd Year
+25-46651,19,Male,1104,Enrolled,2.81,"50,000 - 60,000",No,1st Year
+22-45382,25,Female,4102,Enrolled,2.07,"10,000 - 20,000",Yes,4th Year
+23-71995,21,Female,3101,Enrolled,1.9,"Above 60,000",No,3rd Year
+24-73782,21,Male,2103,Enrolled,2.21,"50,000 - 60,000",Yes,2nd Year
+23-43330,25,Male,3104,Enrolled,2.27,"20,000 - 30,000",No,3rd Year
+24-83446,21,Female,2105,Dropped,2.63,"Below 10,000",Yes,2nd Year
+23-85609,25,Male,3105,Enrolled,1.66,"20,000 - 30,000",No,3rd Year
+25-68580,21,Female,1101,Enrolled,2.79,"10,000 - 20,000",No,1st Year
+24-65288,23,Female,2105,Enrolled,2.19,"Below 10,000",Yes,2nd Year
+24-39912,21,Female,2103,Enrolled,2.1,"40,000 - 50,000",No,2nd Year
+24-68313,24,Female,2103,Enrolled,1.9,"10,000 - 20,000",No,2nd Year
+23-40753,25,Male,3103,Enrolled,1.67,"30,000 - 40,000",Yes,3rd Year
+22-72021,21,Male,4105,Enrolled,2.54,"40,000 - 50,000",No,4th Year
+22-23622,25,Male,4103,Enrolled,2.28,"30,000 - 40,000",No,4th Year
+23-47247,25,Male,3104,Enrolled,1.8,"Above 60,000",Yes,3rd Year
+22-96972,27,Female,4103,Enrolled,1.8,"30,000 - 40,000",No,4th Year
+24-81898,20,Male,2104,Enrolled,2.13,"30,000 - 40,000",No,2nd Year
+25-78610,20,Female,1105,Enrolled,2.83,"10,000 - 20,000",No,1st Year
+25-50352,21,Female,1103,Enrolled,2.16,"Below 10,000",Yes,1st Year
+23-55073,23,Male,3103,Enrolled,1.72,"30,000 - 40,000",No,3rd Year
+25-49270,24,Female,1101,Enrolled,2.16,"40,000 - 50,000",No,1st Year
+22-81855,22,Female,4103,Enrolled,2.15,"30,000 - 40,000",No,4th Year
+23-94671,23,Male,3104,Enrolled,1.31,"30,000 - 40,000",No,3rd Year
+24-47313,21,Female,2105,Enrolled,2.23,"Below 10,000",Yes,2nd Year
+24-24464,23,Female,2104,Enrolled,2.17,"40,000 - 50,000",No,2nd Year
+24-12542,19,Male,2102,Enrolled,2.49,"Below 10,000",No,2nd Year
+23-67464,21,Male,3101,Enrolled,2.9,"30,000 - 40,000",No,3rd Year
+25-50838,20,Female,1104,Enrolled,2.64,"Below 10,000",No,1st Year
+23-17345,23,Male,3103,Enrolled,2.16,"10,000 - 20,000",Yes,3rd Year
+24-60014,19,Male,2101,Enrolled,1.86,"30,000 - 40,000",No,2nd Year
+22-36106,26,Male,4104,Enrolled,3.15,"10,000 - 20,000",No,4th Year
+24-52344,24,Male,2102,Enrolled,2.27,"40,000 - 50,000",No,2nd Year
+24-73075,20,Female,2103,Enrolled,2.25,"Above 60,000",No,2nd Year
+22-40928,23,Male,4104,Enrolled,2.24,"20,000 - 30,000",No,4th Year
+25-41862,18,Female,1101,Enrolled,2.32,"10,000 - 20,000",No,1st Year
+22-42600,24,Male,4102,Enrolled,2.2,"20,000 - 30,000",No,4th Year
+22-17834,26,Male,4103,Enrolled,2.05,"Above 60,000",Yes,4th Year
+25-40497,22,Female,1103,Enrolled,2.06,"30,000 - 40,000",No,1st Year
+22-59514,26,Male,4103,Enrolled,2.24,"Below 10,000",No,4th Year
+25-83272,22,Female,1103,Enrolled,2.06,"10,000 - 20,000",No,1st Year
+24-71393,23,Male,2103,Enrolled,2.0,"10,000 - 20,000",No,2nd Year
+24-80989,22,Male,2103,Enrolled,2.29,"40,000 - 50,000",No,2nd Year
+23-12453,22,Male,3105,Enrolled,2.16,"Below 10,000",No,3rd Year
+25-34886,23,Female,1105,Enrolled,2.78,"10,000 - 20,000",No,1st Year
+24-63713,19,Male,2103,Enrolled,1.32,"Below 10,000",Yes,2nd Year
+23-33414,21,Male,3101,Enrolled,2.63,"Below 10,000",Yes,3rd Year
+25-96235,22,Female,1104,Dropped,2.69,"10,000 - 20,000",Yes,1st Year
+22-11715,26,Female,4102,Enrolled,1.52,"Above 60,000",Yes,4th Year
+22-57307,26,Female,4105,Enrolled,2.13,"Above 60,000",No,4th Year
+24-79339,24,Male,2101,Enrolled,2.12,"Below 10,000",No,2nd Year
+22-23267,25,Female,4102,Enrolled,1.76,"40,000 - 50,000",No,4th Year
+23-83193,23,Male,3105,Enrolled,1.98,"40,000 - 50,000",No,3rd Year
+25-97194,18,Male,1104,Enrolled,1.86,"40,000 - 50,000",No,1st Year
+24-96184,23,Female,2102,Enrolled,2.86,"20,000 - 30,000",No,2nd Year
+24-58722,24,Female,2104,Enrolled,2.58,"20,000 - 30,000",No,2nd Year
+23-59160,25,Female,3105,Enrolled,2.7,"30,000 - 40,000",No,3rd Year
+25-10025,20,Male,1101,Enrolled,2.5,"20,000 - 30,000",Yes,1st Year
+23-38157,20,Female,3103,Enrolled,1.85,"40,000 - 50,000",No,3rd Year
+23-22358,23,Female,3101,Enrolled,2.07,"20,000 - 30,000",No,3rd Year
+23-40539,22,Male,3103,Enrolled,2.42,"40,000 - 50,000",No,3rd Year
+22-52558,22,Female,4104,Enrolled,1.82,"50,000 - 60,000",No,4th Year
+22-88018,21,Female,4103,Enrolled,2.5,"Below 10,000",No,4th Year
+24-55603,22,Male,2104,Enrolled,2.17,"10,000 - 20,000",No,2nd Year
+22-93084,21,Female,4104,Enrolled,2.12,"20,000 - 30,000",No,4th Year
+23-52838,25,Male,3105,Enrolled,2.5,"50,000 - 60,000",No,3rd Year
+25-68407,22,Male,1105,Enrolled,2.41,"20,000 - 30,000",No,1st Year
+23-27326,20,Female,3103,Enrolled,2.12,"Below 10,000",No,3rd Year
+24-21151,23,Female,2104,Enrolled,2.66,"10,000 - 20,000",No,2nd Year
+25-83308,21,Female,1102,Enrolled,1.87,"10,000 - 20,000",No,1st Year
+23-41760,22,Female,3101,Enrolled,2.47,"40,000 - 50,000",Yes,3rd Year
+25-65514,20,Male,1103,Enrolled,2.46,"40,000 - 50,000",No,1st Year
+24-32184,23,Female,2103,Enrolled,2.14,"30,000 - 40,000",Yes,2nd Year
+23-36173,21,Male,3103,Enrolled,2.36,"Below 10,000",No,3rd Year
+23-47707,22,Male,3101,Enrolled,1.81,"30,000 - 40,000",Yes,3rd Year
+23-80517,21,Female,3102,Enrolled,2.57,"40,000 - 50,000",No,3rd Year
+23-97590,23,Male,3101,Enrolled,2.19,"Below 10,000",No,3rd Year
+24-16957,24,Male,2104,Enrolled,2.07,"50,000 - 60,000",No,2nd Year
+24-24141,21,Female,2101,Enrolled,2.62,"30,000 - 40,000",No,2nd Year
+22-51347,27,Male,4104,Enrolled,2.0,"40,000 - 50,000",No,4th Year
+22-15210,25,Female,4102,Enrolled,1.76,"30,000 - 40,000",No,4th Year
+22-55453,23,Female,4103,Enrolled,1.71,"40,000 - 50,000",No,4th Year
+22-92023,24,Male,4103,Enrolled,2.46,"20,000 - 30,000",No,4th Year
+24-61491,19,Female,2102,Enrolled,1.8,"50,000 - 60,000",No,2nd Year
+23-64700,24,Male,3102,Enrolled,2.86,"20,000 - 30,000",No,3rd Year
+24-68873,20,Male,2105,Enrolled,1.52,"40,000 - 50,000",No,2nd Year
+23-28102,25,Male,3103,Enrolled,2.84,"Above 60,000",Yes,3rd Year
+23-51614,24,Male,3101,Enrolled,2.32,"Above 60,000",No,3rd Year
+22-51771,24,Female,4104,Enrolled,2.22,"Above 60,000",No,4th Year
+24-29917,19,Male,2102,Enrolled,2.06,"Above 60,000",No,2nd Year
+24-89377,23,Male,2105,Enrolled,2.39,"10,000 - 20,000",No,2nd Year
+24-20417,20,Female,2104,Enrolled,2.24,"20,000 - 30,000",Yes,2nd Year
+25-74414,19,Male,1104,Enrolled,2.64,"Below 10,000",No,1st Year
+22-45370,22,Male,4104,Enrolled,2.29,"Below 10,000",Yes,4th Year
+25-90879,23,Female,1104,Enrolled,2.3,"10,000 - 20,000",No,1st Year
+22-89682,26,Female,4104,Enrolled,2.12,"50,000 - 60,000",No,4th Year
+22-78242,24,Female,4101,Enrolled,2.23,"Below 10,000",No,4th Year
+23-77987,23,Male,3105,Enrolled,2.36,"40,000 - 50,000",No,3rd Year
+22-34884,24,Female,4103,Enrolled,1.65,"Above 60,000",No,4th Year
+25-31821,20,Male,1104,Enrolled,1.78,"10,000 - 20,000",No,1st Year
+25-21854,18,Male,1105,Enrolled,2.51,"50,000 - 60,000",No,1st Year
+25-64206,21,Male,1103,Enrolled,2.31,"40,000 - 50,000",No,1st Year
+23-69596,22,Female,3101,Enrolled,2.19,"50,000 - 60,000",No,3rd Year
+22-21952,26,Female,4101,Enrolled,2.26,"Below 10,000",No,4th Year
+25-77065,19,Female,1105,Enrolled,2.37,"Below 10,000",No,1st Year
+24-84120,20,Male,2102,Enrolled,2.06,"50,000 - 60,000",Yes,2nd Year
+24-50569,21,Male,2104,Enrolled,1.98,"10,000 - 20,000",No,2nd Year
+22-91600,21,Female,4103,Enrolled,2.32,"30,000 - 40,000",No,4th Year
+22-89689,22,Male,4104,Enrolled,1.91,"30,000 - 40,000",No,4th Year
+25-20407,22,Male,1105,Enrolled,2.39,"40,000 - 50,000",No,1st Year
+23-16411,21,Male,3102,Enrolled,1.65,"Below 10,000",Yes,3rd Year
+22-97424,27,Female,4105,Enrolled,2.61,"Below 10,000",Yes,4th Year
+25-33363,23,Female,1102,Enrolled,2.42,"50,000 - 60,000",No,1st Year
+23-69682,22,Male,3105,Enrolled,2.34,"20,000 - 30,000",No,3rd Year
+25-18869,24,Male,1104,Enrolled,2.59,"10,000 - 20,000",Yes,1st Year
+24-53150,22,Male,2105,Enrolled,2.83,"40,000 - 50,000",Yes,2nd Year
+22-73394,27,Female,4105,Enrolled,2.61,"Above 60,000",No,4th Year
+24-27001,23,Female,2105,Enrolled,1.61,"50,000 - 60,000",No,2nd Year
+23-89876,25,Female,3102,Enrolled,1.8,"Below 10,000",Yes,3rd Year
+25-91980,23,Male,1101,Enrolled,2.03,"30,000 - 40,000",No,1st Year
+24-55829,24,Male,2105,Dropped,2.26,"10,000 - 20,000",Yes,2nd Year
+24-18891,21,Female,2103,Enrolled,2.43,"Below 10,000",No,2nd Year
+24-61910,23,Male,2105,Enrolled,2.0,"10,000 - 20,000",No,2nd Year
+24-98142,22,Male,2104,Enrolled,2.32,"30,000 - 40,000",Yes,2nd Year
+25-80381,21,Female,1103,Enrolled,1.99,"Below 10,000",No,1st Year
+24-84048,23,Male,2103,Enrolled,2.04,"50,000 - 60,000",No,2nd Year
+24-18678,21,Male,2102,Enrolled,1.76,"30,000 - 40,000",No,2nd Year
+23-84839,23,Male,3105,Enrolled,1.93,"Above 60,000",No,3rd Year
+24-51222,21,Female,2101,Enrolled,1.78,"10,000 - 20,000",No,2nd Year
+24-38329,21,Male,2105,Enrolled,1.91,"Above 60,000",Yes,2nd Year
+23-22137,24,Male,3104,Enrolled,2.62,"40,000 - 50,000",Yes,3rd Year
+24-73369,21,Female,2105,Enrolled,1.92,"Above 60,000",Yes,2nd Year
+23-36894,23,Female,3101,Enrolled,3.17,"40,000 - 50,000",Yes,3rd Year
+24-15771,19,Female,2105,Enrolled,2.42,"Below 10,000",Yes,2nd Year
+24-12946,21,Male,2105,Enrolled,2.31,"10,000 - 20,000",No,2nd Year
+24-67817,21,Male,2101,Enrolled,1.95,"Below 10,000",Yes,2nd Year
+22-37076,23,Female,4105,Enrolled,2.5,"50,000 - 60,000",No,4th Year
+23-32449,22,Female,3101,Enrolled,2.05,"Below 10,000",Yes,3rd Year
+25-98538,18,Female,1101,Enrolled,2.29,"30,000 - 40,000",No,1st Year
+25-90781,20,Female,1103,Enrolled,3.15,"50,000 - 60,000",No,1st Year
+22-71039,22,Male,4105,Enrolled,2.22,"50,000 - 60,000",No,4th Year
+25-50683,21,Male,1104,Enrolled,2.65,"10,000 - 20,000",No,1st Year
+24-57638,20,Female,2104,Enrolled,2.0,"20,000 - 30,000",No,2nd Year
+22-18567,21,Female,4104,Enrolled,2.24,"Above 60,000",Yes,4th Year
+24-89225,20,Male,2105,Enrolled,2.87,"50,000 - 60,000",No,2nd Year
+24-82895,21,Female,2101,Enrolled,2.03,"30,000 - 40,000",No,2nd Year
+23-81820,23,Female,3102,Enrolled,2.88,"10,000 - 20,000",No,3rd Year
+25-67062,24,Female,1105,Enrolled,2.5,"10,000 - 20,000",Yes,1st Year
+22-85260,21,Female,4104,Enrolled,2.05,"Below 10,000",No,4th Year
+23-50374,20,Male,3104,Enrolled,2.47,"40,000 - 50,000",No,3rd Year
+25-52914,23,Male,1104,Enrolled,2.59,"Above 60,000",Yes,1st Year
+22-29231,24,Female,4102,Enrolled,2.47,"40,000 - 50,000",No,4th Year
+23-99327,22,Female,3103,Enrolled,1.7,"30,000 - 40,000",No,3rd Year
+24-21703,19,Female,2105,Enrolled,2.0,"Above 60,000",No,2nd Year
+24-81943,19,Female,2101,Enrolled,2.16,"20,000 - 30,000",No,2nd Year
+23-66585,23,Female,3105,Enrolled,2.22,"30,000 - 40,000",No,3rd Year
+23-96833,23,Male,3102,Enrolled,2.47,"30,000 - 40,000",No,3rd Year
+24-64687,21,Male,2102,Enrolled,2.31,"Below 10,000",No,2nd Year
+23-73792,21,Male,3104,Enrolled,1.78,"Above 60,000",No,3rd Year
+25-89223,22,Male,1104,Enrolled,2.38,"30,000 - 40,000",No,1st Year
+25-60425,19,Male,1103,Enrolled,2.46,"Below 10,000",No,1st Year
+23-75762,23,Female,3103,Dropped,2.45,"Below 10,000",Yes,3rd Year
+24-24832,22,Male,2105,Enrolled,2.63,"50,000 - 60,000",No,2nd Year
+24-70940,19,Male,2105,Enrolled,2.54,"50,000 - 60,000",No,2nd Year
+22-99662,27,Female,4105,Enrolled,2.41,"20,000 - 30,000",No,4th Year
+22-71455,25,Female,4104,Enrolled,2.23,"20,000 - 30,000",No,4th Year
+24-47907,19,Female,2102,Enrolled,1.67,"40,000 - 50,000",No,2nd Year
+25-85778,22,Male,1102,Enrolled,2.4,"20,000 - 30,000",No,1st Year
+22-47593,21,Male,4104,Enrolled,2.32,"Above 60,000",No,4th Year
+24-27372,21,Female,2105,Enrolled,2.35,"Below 10,000",No,2nd Year
+23-87564,25,Female,3102,Enrolled,1.8,"10,000 - 20,000",No,3rd Year
+23-73559,24,Male,3102,Enrolled,1.87,"Below 10,000",No,3rd Year
+23-75004,23,Male,3104,Enrolled,2.62,"50,000 - 60,000",No,3rd Year
+23-85727,20,Female,3103,Enrolled,2.24,"Below 10,000",Yes,3rd Year
+25-62264,20,Female,1104,Enrolled,2.49,"Above 60,000",No,1st Year
+23-59781,23,Female,3104,Enrolled,2.26,"Above 60,000",No,3rd Year
+24-68827,24,Female,2104,Enrolled,2.26,"50,000 - 60,000",No,2nd Year
