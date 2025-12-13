@@ -701,8 +701,6 @@ def visualize_data():
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while visualizing: {e}")
 
-
-
 # Function to save the visualized data
 def save_visualization():
     try:
@@ -718,65 +716,6 @@ def save_visualization():
             messagebox.showinfo("Success", f"Visualization saved as: {file_path}")
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while saving: {e}")
-
-
-def analyze_relationship():
-    try:
-        col1 = column_var.get()
-        col2 = column2_var.get()
-        graph_type = graph_type_var.get()
-
-        if col1 not in df.columns or col2 not in df.columns:
-            messagebox.showerror("Error", "Please select valid columns.")
-            return
-
-        # Create temporary columns for analysis without modifying the original df
-        temp_col1 = df[col1]
-        if temp_col1.dtype == 'object':
-            temp_col1 = temp_col1.astype("category").cat.codes
-            messagebox.showinfo("Conversion", f"Column '{col1}' converted to numeric codes temporarily for analysis.")
-
-        temp_col2 = df[col2]
-        if temp_col2.dtype == 'object':  # If it's a string/categorical column
-            temp_col2 = temp_col2.astype("category").cat.codes
-            messagebox.showinfo("Conversion", f"Column '{col2}' converted to numeric codes temporarily for analysis.")
-
-        # Check if the temporary columns are numeric
-        if not pd.api.types.is_numeric_dtype(temp_col1) or not pd.api.types.is_numeric_dtype(temp_col2):
-            messagebox.showerror("Error", "Both columns must be numeric for this analysis.")
-            return
-
-        # Correlation and visualization logic
-        correlation = temp_col1.corr(temp_col2)
-        relationship_label.config(text=f"Correlation between {col1} and {col2}: {correlation:.2f}")
-
-        # Create figure and axis
-        fig, ax = plt.subplots(figsize=(8, 6))
-
-        # Set figure and axes background color to match the base background color
-        fig.patch.set_facecolor("#1E1E2F")  # Matches the app background
-        ax.set_facecolor("#1E1E2F")  # Matches the app background
-
-        sns.scatterplot(x=temp_col1, y=temp_col2, color=color_var.get(), ax=ax)
-        ax.set_title(f"Scatter Plot of {col1} vs {col2}")
-        ax.set_xlabel(col1)
-        ax.set_ylabel(col2)
-
-        # Adjust label and title colors to match the theme
-        ax.title.set_color("#F8F8F2")  # Title color
-        ax.xaxis.label.set_color("#F8F8F2")  # X-axis label color
-        ax.yaxis.label.set_color("#F8F8F2")  # Y-axis label color
-        ax.tick_params(colors="#F8F8F2")  # Tick label color
-
-        # Clear previous visualizations and display the new one
-        for widget in visualization_frame.winfo_children():
-            widget.destroy()
-        canvas = FigureCanvasTkAgg(fig, master=visualization_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True)
-
-    except Exception as e:
-        messagebox.showerror("Error", f"An error occurred: {e}")
 
 def Predictions():
     """Run a simple supervised prediction using the normalized category columns."""
