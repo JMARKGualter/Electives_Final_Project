@@ -466,6 +466,12 @@ def upload_file():
             for column in columns:
                 sort_menu["menu"].add_command(label=column, command=tk._setit(sort_column_var, column))
             
+            # Populate quick column menu
+            quick_column_var.set(columns[0])
+            quick_menu["menu"].delete(0, "end")
+            for column in columns:
+                quick_menu["menu"].add_command(label=column, command=tk._setit(quick_column_var, column))
+            
             # Enable other buttons after file is uploaded
             visualize_button.config(state=tk.NORMAL)
             save_button.config(state=tk.NORMAL)
@@ -1183,7 +1189,7 @@ def reset_data(window):
 
 def show_top_values():
     if not df.empty:
-        column = column_var.get()  # Get the selected column
+        column = quick_column_var.get()  # Get the selected column
         if column not in df.columns:
             messagebox.showerror("Error", "Please select a valid column.")
             return
@@ -1202,7 +1208,7 @@ def show_top_values():
 
 def show_least_values():
     if not df.empty:
-        column = column_var.get()  # Get the selected column
+        column = quick_column_var.get()  # Get the selected column
         if column not in df.columns:
             messagebox.showerror("Error", "Please select a valid column.")
             return
@@ -1573,6 +1579,11 @@ cluster_faculty_button.pack(fill=tk.X, pady=4, padx=6)
 
 
 # Populate Quick category
+quick_column_label = tk.Label(values_frame, text="Select Column", bg="#282A36", fg="#F8F8F2", font=("Arial", 12))
+quick_column_label.pack(anchor='w', pady=(6,0), padx=6)
+quick_column_var = tk.StringVar()
+quick_menu = ttk.OptionMenu(values_frame, quick_column_var, "")
+quick_menu.pack(fill=tk.X, pady=4, padx=6)
 top_button = tk.Button(values_frame, text="Top Values", command=show_top_values, **button_style)
 top_button.pack(fill=tk.X, pady=4, padx=6)
 least_button = tk.Button(values_frame, text="Least Values", command=show_least_values, **button_style)
